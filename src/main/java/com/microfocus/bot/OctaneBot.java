@@ -9,23 +9,22 @@ import org.telegram.abilitybots.api.objects.Flag;
 import org.telegram.abilitybots.api.objects.Reply;
 import org.telegram.abilitybots.api.toggle.CustomToggle;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
+import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
-import static org.telegram.abilitybots.api.objects.Flag.MESSAGE;
 import static org.telegram.abilitybots.api.objects.Flag.REPLY;
 import static org.telegram.abilitybots.api.objects.Locality.ALL;
 import static org.telegram.abilitybots.api.objects.Privacy.PUBLIC;
 import static org.telegram.abilitybots.api.util.AbilityUtils.getChatId;
 
-public class OctaneBot extends AbilityBot {
+public class OctaneBot extends AbilityBot implements Constants {
     private static final Logger logger = LoggerFactory.getLogger(DefaultBotSession.class);
 
     private static final CustomToggle toggle = new CustomToggle();
+
 
     protected OctaneBot(String botToken, String botUsername) {
         super(botToken, botUsername, toggle);
@@ -36,11 +35,11 @@ public class OctaneBot extends AbilityBot {
         return 360157588;
     }
 
-    public Ability sayStart() {
+    @SuppressWarnings("unused")
+    public Ability onStart() {
         return Ability
                 .builder()
                 .name("start")
-                .info("bla bla bla")
                 .locality(ALL)
                 .privacy(PUBLIC)
                 .action(ctx -> {
@@ -51,63 +50,19 @@ public class OctaneBot extends AbilityBot {
                     silent.execute(new SendMessage()
                             .setText("please login")
                             .setChatId(ctx.chatId())
-                            .setReplyMarkup(KeyboardFactory.getInitReplyKeyboard()));
+                            .setReplyMarkup(KeyboardFactory.getLoginInLineButtons()));
                 })
                 .build();
     }
 
-    public Ability playWithMe() {
-        String playMessage = "Play with me!";
-
-        return Ability.builder()
-                .name("play")
-                .info("Do you want to play with me?")
-                .privacy(PUBLIC)
-                .locality(ALL)
-                .input(0)
-                .action(ctx -> silent.forceReply(playMessage, ctx.chatId()))
-                // The signature of a reply is -> (Consumer<Update> action, Predicate<Update>... conditions)
-                // So, we  first declare the action that takes an update (NOT A MESSAGECONTEXT) like the action above
-                // The reason of that is that a reply can be so versatile depending on the message, context becomes an inefficient wrapping
-                .reply(upd -> {
-                            // Prints to console
-                            System.out.println("I'm in a reply!");
-                            // Sends message
-                            silent.send("It's been nice playing with you!", upd.getMessage().getChatId());
-                        },
-                        // Now we start declaring conditions, MESSAGE is a member of the enum Flag class
-                        // That class contains out-of-the-box predicates for your replies!
-                        // MESSAGE means that the update must have a message
-                        // This is imported statically, Flag.MESSAGE
-                        MESSAGE,
-                        // REPLY means that the update must be a reply, Flag.REPLY
-                        REPLY,
-                        // A new predicate user-defined
-                        // The reply must be to the bot
-                        isReplyToBot(),
-                        // If we process similar logic in other abilities, then we have to make this reply specific to this message
-                        // The reply is to the playMessage
-                        isReplyToMessage(playMessage)
-                )
-                // You can add more replies by calling .reply(...)
-                .build();
-    }
-
-    private Predicate<Update> isReplyToMessage(String message) {
-        return upd -> {
-            Message reply = upd.getMessage().getReplyToMessage();
-            return reply.hasText() && reply.getText().equalsIgnoreCase(message);
-        };
-    }
-
-    private Predicate<Update> isReplyToBot() {
-        return upd -> upd.getMessage().getReplyToMessage().getFrom().getUserName().equalsIgnoreCase(getBotUsername());
-    }
-
-    public Reply replyToButtons() {
+    @SuppressWarnings("unused")
+    public Reply replyToInLineButtons() {
         Consumer<Update> action = update -> {
             switch (update.getCallbackQuery().getData()) {
                 case Constants.LOGIN_BUTTON:
+                    if (getUserDB(update).get(SING_IN_PROP).equalsIgnoreCase(Boolean.TRUE.toString())) {
+                        silent.send("Already sing-in", getChatId(update));
+                    }
                     silent.forceReply("Please provide login", getChatId(update));
                     break;
                 case Constants.LOGOUT_BUTTON:
@@ -116,38 +71,91 @@ public class OctaneBot extends AbilityBot {
             }
 
         };
-
         return Reply.of(action, Flag.CALLBACK_QUERY);
     }
 
-    @Override
-    public void onUpdateReceived(Update update) {
-        if (update.getMessage() != null && update.getMessage().getReplyToMessage() != null) {
-            if (update.getMessage().getReplyToMessage().getText().equalsIgnoreCase("Please provide login")) {
-                db.getMap(Constants.CHAT_STATE).put("login", update.getMessage().getText());
-                silent.forceReply("Please provide password", getChatId(update));
-            }
-
-            if (update.getMessage().getReplyToMessage().getText().equalsIgnoreCase("Please provide password")) {
-                db.getMap(Constants.CHAT_STATE).put("password", update.getMessage().getText());
-
-                silent.send("Try to login", getChatId(update));
-
-                //TODO login
-
-                boolean badData = true;
-                if (badData) {
-                    db.getMap(Constants.CHAT_STATE).clear();
-                    silent.send("bad data, pls provide again", getChatId(update));
+    @SuppressWarnings("unused")
+    public Reply replyToBigButtons() {
+        Consumer<Update> action = update -> {
+            logger.debug(update.toString());
+            switch (update.getMessage().getText()) {
+                case LOGOUT_BUTTON:
+                    getUserDB(update).clear();
+                    silent.execute(new SendMessage().setText("You are log out")
+                            .setChatId(getChatId(update)));
 
                     silent.execute(new SendMessage()
                             .setText("please login")
                             .setChatId(getChatId(update))
-                            .setReplyMarkup(KeyboardFactory.getInitReplyKeyboard()));
-                }
+                            .setReplyMarkup(KeyboardFactory.getLoginInLineButtons()));
+                    break;
+                case GET_MY_WORK:
+                case GET_LAST_FAILED_TEST:
+                    throw new UnsupportedOperationException("not impl");
             }
-        }
+        };
+        return Reply.of(action, upd -> Flag.TEXT.test(upd) && isBigButton(upd));
+    }
 
+    private boolean isBigButton(Update upd) {
+        return getBigButtons().contains(upd.getMessage().getText());
+    }
+
+    @SuppressWarnings("unused")
+    public Reply replyToMessages() {
+        Consumer<Update> action = update -> {
+            if (!isReplyToBot(update)) {
+                return;
+            }
+            switch (update.getMessage().getReplyToMessage().getText()) {
+                case "Please provide login":
+                    getUserDB(update).put(LOGIN_PROP, update.getMessage().getText());
+                    silent.forceReply("Please provide password", getChatId(update));
+                    break;
+                case "Please provide password":
+                    getUserDB(update).put(PASSWORD_PROP, update.getMessage().getText());
+                    getUserDB(update).put(SING_IN_PROP, Boolean.TRUE.toString());
+
+                    silent.send("Try to login", getChatId(update));
+
+                    //TODO login
+
+                    boolean badData = false;
+                    if (badData) {
+                        getUserDB(update).clear();
+                        silent.send("bad data, pls provide again", getChatId(update));
+
+                        silent.execute(new SendMessage()
+                                .setText("please login")
+                                .setChatId(getChatId(update))
+                                .setReplyMarkup(KeyboardFactory.getLoginInLineButtons()));
+                    } else {
+                        silent.execute(new SendMessage().setText("You are sing in")
+                                .setChatId(getChatId(update))
+                                .setReplyMarkup(KeyboardFactory.getMainBigButtons()));
+                        break;
+                    }
+                default:
+                    throw new UnsupportedOperationException("not impl");
+            }
+        };
+        return Reply.of(action, REPLY);
+    }
+
+    @Override
+    public void onUpdateReceived(Update update) {
         super.onUpdateReceived(update);
+    }
+
+    private boolean isReplyToBot(Update update) {
+        return update.getMessage().getReplyToMessage().getFrom().getUserName().equalsIgnoreCase(getBotUsername());
+    }
+
+    private String getUserName(Update update) {
+        return update.getMessage().getFrom().getUserName();
+    }
+
+    private Map<String, String> getUserDB(Update update) {
+        return db.getMap(getUserName(update));
     }
 }
