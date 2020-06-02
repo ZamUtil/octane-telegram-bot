@@ -17,9 +17,11 @@ public class Main {
         ApiContextInitializer.init();
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
         try {
-            telegramBotsApi.registerBot(new ParrotBot());
+            //telegramBotsApi.registerBot(new ParrotBot());
+            //telegramBotsApi.registerBot(new AbilityBotTest(BOT_TOKEN, BOT_USER_NAME));
+            telegramBotsApi.registerBot(new OctaneBot(BOT_TOKEN, BOT_USER_NAME));
         } catch (TelegramApiRequestException e) {
-            logger.error(e);
+            logger.error("Oops, something went wrong while registering bot", e);
         }
     }
 }
