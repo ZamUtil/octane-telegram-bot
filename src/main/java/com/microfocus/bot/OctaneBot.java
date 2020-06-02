@@ -21,10 +21,10 @@ import static org.telegram.abilitybots.api.objects.Privacy.PUBLIC;
 import static org.telegram.abilitybots.api.util.AbilityUtils.getChatId;
 
 public class OctaneBot extends AbilityBot implements Constants {
+
     private static final Logger logger = LoggerFactory.getLogger(DefaultBotSession.class);
 
     private static final CustomToggle toggle = new CustomToggle();
-
 
     protected OctaneBot(String botToken, String botUsername) {
         super(botToken, botUsername, toggle);
@@ -63,9 +63,9 @@ public class OctaneBot extends AbilityBot implements Constants {
                     if (getUserDB(update).get(SING_IN_PROP).equalsIgnoreCase(Boolean.TRUE.toString())) {
                         silent.send("Already sing-in", getChatId(update));
                     }
-                    silent.forceReply("Please provide login", getChatId(update));
+                    silent.forceReply(PLEASE_PROVIDE_LOGIN_REPLY, getChatId(update));
                     break;
-                case Constants.LOGOUT_BUTTON:
+                case Constants.LOGOUT_BUTTON_BIG_BUTTON:
                 default:
                     throw new UnsupportedOperationException("not impl");
             }
@@ -79,7 +79,7 @@ public class OctaneBot extends AbilityBot implements Constants {
         Consumer<Update> action = update -> {
             logger.debug(update.toString());
             switch (update.getMessage().getText()) {
-                case LOGOUT_BUTTON:
+                case LOGOUT_BUTTON_BIG_BUTTON:
                     getUserDB(update).clear();
                     silent.execute(new SendMessage().setText("You are log out")
                             .setChatId(getChatId(update)));
@@ -89,16 +89,12 @@ public class OctaneBot extends AbilityBot implements Constants {
                             .setChatId(getChatId(update))
                             .setReplyMarkup(KeyboardFactory.getLoginInLineButtons()));
                     break;
-                case GET_MY_WORK:
-                case GET_LAST_FAILED_TEST:
+                case GET_MY_WORK_BIG_BUTTON:
+                case GET_LAST_FAILED_TEST_BIG_BUTTON:
                     throw new UnsupportedOperationException("not impl");
             }
         };
         return Reply.of(action, upd -> Flag.TEXT.test(upd) && isBigButton(upd));
-    }
-
-    private boolean isBigButton(Update upd) {
-        return getBigButtons().contains(upd.getMessage().getText());
     }
 
     @SuppressWarnings("unused")
@@ -108,11 +104,11 @@ public class OctaneBot extends AbilityBot implements Constants {
                 return;
             }
             switch (update.getMessage().getReplyToMessage().getText()) {
-                case "Please provide login":
+                case PLEASE_PROVIDE_LOGIN_REPLY:
                     getUserDB(update).put(LOGIN_PROP, update.getMessage().getText());
-                    silent.forceReply("Please provide password", getChatId(update));
+                    silent.forceReply(PLEASE_PROVIDE_PASSWORD_REPLY, getChatId(update));
                     break;
-                case "Please provide password":
+                case PLEASE_PROVIDE_PASSWORD_REPLY:
                     getUserDB(update).put(PASSWORD_PROP, update.getMessage().getText());
                     getUserDB(update).put(SING_IN_PROP, Boolean.TRUE.toString());
 
@@ -152,10 +148,17 @@ public class OctaneBot extends AbilityBot implements Constants {
     }
 
     private String getUserName(Update update) {
-        return update.getMessage().getFrom().getUserName();
+        if (update.getMessage() != null) {
+            return update.getMessage().getFrom().getUserName();
+        }
+        return update.getCallbackQuery().getFrom().getUserName();
     }
 
     private Map<String, String> getUserDB(Update update) {
         return db.getMap(getUserName(update));
+    }
+
+    private boolean isBigButton(Update upd) {
+        return getBigButtons().contains(upd.getMessage().getText());
     }
 }

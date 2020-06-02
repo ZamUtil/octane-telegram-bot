@@ -5,12 +5,16 @@ import java.util.Set;
 
 public interface Constants {
     //big buttons
-    String GET_MY_WORK = "getMyWork";
-    String GET_LAST_FAILED_TEST = "getLastFailedTest";
-    String LOGOUT_BUTTON = "Logout";
+    String GET_MY_WORK_BIG_BUTTON = "getMyWork";
+    String GET_LAST_FAILED_TEST_BIG_BUTTON = "getLastFailedTest";
+    String LOGOUT_BUTTON_BIG_BUTTON = "Logout";
 
     //line buttons
     String LOGIN_BUTTON = "Login";
+
+    //reply messages
+    String PLEASE_PROVIDE_LOGIN_REPLY = "Please provide login";
+    String PLEASE_PROVIDE_PASSWORD_REPLY = "Please provide password";
 
     //DB row
     String LOGIN_PROP = "login";
@@ -19,9 +23,9 @@ public interface Constants {
 
     default Set<String> getBigButtons() {
         HashSet<String> bigButtons = new HashSet<>();
-        bigButtons.add(GET_MY_WORK);
-        bigButtons.add(GET_LAST_FAILED_TEST);
-        bigButtons.add(LOGOUT_BUTTON);
+        bigButtons.add(GET_MY_WORK_BIG_BUTTON);
+        bigButtons.add(GET_LAST_FAILED_TEST_BIG_BUTTON);
+        bigButtons.add(LOGOUT_BUTTON_BIG_BUTTON);
         return bigButtons;
     }
 }
