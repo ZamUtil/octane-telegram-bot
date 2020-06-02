@@ -1,5 +1,7 @@
 package com.microfocus.bot;
 
+import com.microfocus.bot.http.OctaneAuth;
+import com.microfocus.bot.http.OctaneHttpClient;
 import com.microfocus.bot.keyboard.KeyboardFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +27,11 @@ public class OctaneBot extends AbilityBot implements Constants {
     private static final Logger logger = LoggerFactory.getLogger(DefaultBotSession.class);
 
     private static final CustomToggle toggle = new CustomToggle();
+    private final OctaneHttpClient octaneClient;
 
     protected OctaneBot(String botToken, String botUsername) {
         super(botToken, botUsername, toggle);
+        octaneClient = OctaneHttpClient.INSTANCE;
     }
 
     @Override
@@ -60,14 +64,15 @@ public class OctaneBot extends AbilityBot implements Constants {
         Consumer<Update> action = update -> {
             switch (update.getCallbackQuery().getData()) {
                 case Constants.LOGIN_BUTTON:
-                    if (getUserDB(update).get(SING_IN_PROP).equalsIgnoreCase(Boolean.TRUE.toString())) {
+                    if (getUserDB(update).containsValue(SING_IN_PROP)
+                            && getUserDB(update).get(SING_IN_PROP).equalsIgnoreCase(Boolean.TRUE.toString())) {
                         silent.send("Already sing-in", getChatId(update));
                     }
                     silent.forceReply(PLEASE_PROVIDE_LOGIN_REPLY, getChatId(update));
                     break;
                 case Constants.LOGOUT_BUTTON_BIG_BUTTON:
                 default:
-                    throw new UnsupportedOperationException("not impl");
+                    throw new UnsupportedOperationException("not impl" + update.getCallbackQuery().getData());
             }
 
         };
@@ -90,8 +95,14 @@ public class OctaneBot extends AbilityBot implements Constants {
                             .setReplyMarkup(KeyboardFactory.getLoginInLineButtons()));
                     break;
                 case GET_MY_WORK_BIG_BUTTON:
+                    String myWork = octaneClient.getMyWork(new OctaneAuth(getUserDB(update)));
+
+                    silent.execute(new SendMessage().setText("You work is " + myWork)
+                            .setChatId(getChatId(update))
+                            .setReplyMarkup(KeyboardFactory.getMainBigButtons()));
+                    break;
                 case GET_LAST_FAILED_TEST_BIG_BUTTON:
-                    throw new UnsupportedOperationException("not impl");
+                    throw new UnsupportedOperationException("not impl" + update.getMessage().getText());
             }
         };
         return Reply.of(action, upd -> Flag.TEXT.test(upd) && isBigButton(upd));
@@ -105,7 +116,7 @@ public class OctaneBot extends AbilityBot implements Constants {
             }
             switch (update.getMessage().getReplyToMessage().getText()) {
                 case PLEASE_PROVIDE_LOGIN_REPLY:
-                    getUserDB(update).put(LOGIN_PROP, update.getMessage().getText());
+                    getUserDB(update).put(USERNAME_PROP, update.getMessage().getText());
                     silent.forceReply(PLEASE_PROVIDE_PASSWORD_REPLY, getChatId(update));
                     break;
                 case PLEASE_PROVIDE_PASSWORD_REPLY:
@@ -114,10 +125,13 @@ public class OctaneBot extends AbilityBot implements Constants {
 
                     silent.send("Try to login", getChatId(update));
 
-                    //TODO login
+                    boolean loginSuccess = octaneClient.login(new OctaneAuth(getUserDB(update)));
+                    if (loginSuccess) {
+                        silent.execute(new SendMessage().setText("You are sing in")
+                                .setChatId(getChatId(update))
+                                .setReplyMarkup(KeyboardFactory.getMainBigButtons()));
 
-                    boolean badData = false;
-                    if (badData) {
+                    } else {
                         getUserDB(update).clear();
                         silent.send("bad data, pls provide again", getChatId(update));
 
@@ -125,14 +139,10 @@ public class OctaneBot extends AbilityBot implements Constants {
                                 .setText("please login")
                                 .setChatId(getChatId(update))
                                 .setReplyMarkup(KeyboardFactory.getLoginInLineButtons()));
-                    } else {
-                        silent.execute(new SendMessage().setText("You are sing in")
-                                .setChatId(getChatId(update))
-                                .setReplyMarkup(KeyboardFactory.getMainBigButtons()));
-                        break;
                     }
+                    break;
                 default:
-                    throw new UnsupportedOperationException("not impl");
+                    throw new UnsupportedOperationException("not impl" + update.getMessage().getReplyToMessage().getText());
             }
         };
         return Reply.of(action, REPLY);
@@ -155,7 +165,8 @@ public class OctaneBot extends AbilityBot implements Constants {
     }
 
     private Map<String, String> getUserDB(Update update) {
-        return db.getMap(getUserName(update));
+        String userName = getUserName(update);
+        return db.getMap(userName);
     }
 
     private boolean isBigButton(Update upd) {

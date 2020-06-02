@@ -17,7 +17,7 @@ public interface Constants {
     String PLEASE_PROVIDE_PASSWORD_REPLY = "Please provide password";
 
     //DB row
-    String LOGIN_PROP = "login";
+    String USERNAME_PROP = "username";
     String PASSWORD_PROP = "password";
     String SING_IN_PROP = "singIn";
 
