@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microfocus.bot.dto.Comment;
 import com.microfocus.bot.dto.CommentsContainer;
 import com.microfocus.bot.dto.OctaineUser;
+import com.microfocus.bot.dto.WorkItem;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -25,6 +26,7 @@ import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.telegram.telegrambots.meta.api.objects.User;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,6 +43,7 @@ public class OctaneHttpClient {
     private static final String BASE_API_PATH = "/api/shared_spaces/1001/workspaces/1002";
     private static final String AUTH_URL = "/authentication/sign_in";
     private static final String MY_WORK_URL = BASE_API_PATH + "/user_items";
+    private static final String WORK_ITEM_URL = BASE_URL+ BASE_API_PATH + "/work_items";
     private static final String COMMENTS_URL = BASE_URL + BASE_API_PATH + "/comments";
     private static final String COMMENTS_URL_INT = BASE_URL + "/internal-api/shared_spaces/1001/workspaces/1002" + "/comments";
     private static final String USER_ID_URL = "/admin/users?fields=id&offset=0&name=%s";
@@ -85,7 +88,14 @@ public class OctaneHttpClient {
             String response = processGet(COMMENTS_URL + prepareGetCommentQuery(userId));
             CommentsContainer commentsResponse = objectMapper.readValue(response, CommentsContainer.class);
 
-            return commentsResponse.getData();
+            List<Comment> comments = commentsResponse.getData();
+
+            comments.forEach(comment -> {
+                comment.setWorkItem(getWorkItemById(comment.getOwnerWorkItem().getId()));
+                comment.setAuthor(getUserById(comment.getAuthor().getId()));
+            });
+
+            return comments;
         } catch (Exception e) {
             logger.error("Error while reading new comments", e);
         }
@@ -106,7 +116,7 @@ public class OctaneHttpClient {
 
             Comment comment = new Comment();
             comment.setText(text);
-            comment.setWorkItem(new Comment.OwnerItem(itemData.getLeft(), itemData.getRight()));
+            comment.setOwnerWorkItem(new Comment.OwnerItem(itemData.getLeft(), itemData.getRight()));
 
             CommentsContainer commentsReq = new CommentsContainer();
             commentsReq.setData(Collections.singletonList(comment));
@@ -227,5 +237,24 @@ public class OctaneHttpClient {
         return "?fields=order_number,author,text,owner_run,owner_test,owner_work_item,owner_requirement,owner_bdd_spec,owner_process,owner_planning_info,owner_task,owner_issue,id" +
                 "&limit=10&offset=0&order_by=-creation_time" +
                 "&query=%22((mention_user%3D%7B(id%3D" + userId + ")%7D);(my_new_items_owner%3D%7Bid%3D" + userId + "%7D))%22);";
+    }
+
+
+    private WorkItem getWorkItemById(Long id) {
+        try {
+            String response = processGet(WORK_ITEM_URL + "/" + id + "?fields=name");
+            return objectMapper.readValue(response, WorkItem.class);
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    private OctaineUser getUserById(String id) {
+        try {
+            String response = processGet(BASE_URL + "/admin/users?fields=first_name,last_name&limit=111&offset=0&order_by=id&query=%22(id%3D" + id + ")%22");
+            return objectMapper.readValue(response, OctaineUser.class);
+        } catch (Exception ignored) {
+        }
+        return null;
     }
 }

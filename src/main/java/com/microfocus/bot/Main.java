@@ -1,5 +1,6 @@
 package com.microfocus.bot;
 
+import com.microfocus.bot.async.PollUserDataThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.ApiContextInitializer;

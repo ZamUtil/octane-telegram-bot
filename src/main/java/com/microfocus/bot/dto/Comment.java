@@ -12,10 +12,11 @@ public class Comment {
     private String text;
 
     @JsonProperty("owner_work_item")
-    private OwnerItem workItem;
+    private OwnerItem ownerWorkItem;
 
-/*    @JsonProperty("owner_run")
-    private OwnerItem run;*/
+    private WorkItem workItem;
+
+    private OctaineUser author;
 
     public Comment() {
     }
@@ -36,12 +37,28 @@ public class Comment {
         this.text = text;
     }
 
-    public OwnerItem getWorkItem() {
+    public OwnerItem getOwnerWorkItem() {
+        return ownerWorkItem;
+    }
+
+    public void setOwnerWorkItem(OwnerItem ownerWorkItem) {
+        this.ownerWorkItem = ownerWorkItem;
+    }
+
+    public WorkItem getWorkItem() {
         return workItem;
     }
 
-    public void setWorkItem(OwnerItem workItem) {
+    public void setWorkItem(WorkItem workItem) {
         this.workItem = workItem;
+    }
+
+    public OctaineUser getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(OctaineUser author) {
+        this.author = author;
     }
 
     public static class OwnerItem {
@@ -70,6 +87,18 @@ public class Comment {
 
         public void setType(String type) {
             this.type = type;
+        }
+
+        public String getShortTypeName() {
+            switch (type) {
+                case "story":
+                    return "US";
+                case "epic":
+                    return "E";
+                case "defect":
+                    return "D";
+            }
+            return type;
         }
     }
 }

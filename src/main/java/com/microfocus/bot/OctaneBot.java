@@ -1,11 +1,11 @@
 package com.microfocus.bot;
 
+import com.microfocus.bot.async.PollUserDataThread;
 import com.microfocus.bot.http.OctaneAuth;
 import com.microfocus.bot.http.OctaneHttpClient;
 import com.microfocus.bot.keyboard.KeyboardFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.abilitybots.api.bot.AbilityBot;
@@ -165,7 +165,14 @@ public class OctaneBot extends AbilityBot implements Constants {
                     break;
                 case PLEASE_PROVIDE_REPLY_MESSAGE_REPLY:
                     String replyText = update.getMessage().getText();
-                    octaneClient.postComment(createOctaneAuth(update), readLastReplyCommentCallbackData(update), replyText);
+                    Pair<Long, String> itemData = readLastReplyCommentCallbackData(update);
+                    octaneClient.postComment(createOctaneAuth(update), itemData, replyText);
+
+                    silent.execute(new SendMessage()
+                            .setText("message was sent, want to proceed?")
+                            .setChatId(getChatId(update))
+                            .setReplyMarkup(KeyboardFactory.getCommentInLineButtons(itemData)));
+
                     break;
                 default:
                     throw new UnsupportedOperationException("not impl" + update.getMessage().getReplyToMessage().getText());

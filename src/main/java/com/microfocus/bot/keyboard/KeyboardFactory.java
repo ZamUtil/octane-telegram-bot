@@ -2,7 +2,7 @@ package com.microfocus.bot.keyboard;
 
 import com.microfocus.bot.Constants;
 import com.microfocus.bot.dto.Comment;
-import org.jetbrains.annotations.NotNull;
+import org.apache.commons.lang3.tuple.Pair;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -51,8 +51,22 @@ public class KeyboardFactory implements Constants {
         return inlineKeyboard;
     }
 
-    @NotNull
+    public static ReplyKeyboard getCommentInLineButtons(Pair<Long, String> itemData) {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> rowInline = new ArrayList<>();
+        rowInline.add(new InlineKeyboardButton().setText(Constants.REPLY_COMMENT_BUTTON).setCallbackData(getCallbackData(REPLY_COMMENT_BUTTON, itemData.getLeft(), itemData.getRight())));
+        rowInline.add(new InlineKeyboardButton().setText(Constants.VIEW_ITEM_DETAILS_BUTTON).setCallbackData(getCallbackData(VIEW_ITEM_DETAILS_BUTTON, itemData.getLeft(), itemData.getRight())));
+        rowsInline.add(rowInline);
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
+
     private static String getCallbackData(String replyCommentButton, Comment.OwnerItem workItem) {
-        return replyCommentButton + "{" + workItem.getId() + ":" + workItem.getType() + "}";
+        return getCallbackData(replyCommentButton, workItem.getId(), workItem.getType());
+    }
+
+    private static String getCallbackData(String replyCommentButton, Long workItemId, String workItemType) {
+        return replyCommentButton + "{" + workItemId + ":" + workItemType + "}";
     }
 }

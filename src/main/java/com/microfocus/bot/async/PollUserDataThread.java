@@ -1,5 +1,7 @@
-package com.microfocus.bot;
+package com.microfocus.bot.async;
 
+import com.microfocus.bot.Constants;
+import com.microfocus.bot.dto.Comment;
 import com.microfocus.bot.http.OctaneAuth;
 import com.microfocus.bot.http.OctaneHttpClient;
 import com.microfocus.bot.keyboard.KeyboardFactory;
@@ -40,9 +42,9 @@ public class PollUserDataThread extends Thread {
                         .filter(comment -> comment.getWorkItem() != null)//handle only work_item comments
                         .forEach(comment -> {
                             silent.execute(new SendMessage()
-                                    .setText(Jsoup.parse(comment.getText()).text())
+                                    .setText(prepareFormattedMessage(comment))
                                     .setChatId(chatId)
-                                    .setReplyMarkup(KeyboardFactory.getCommentInLineButtons(comment.getWorkItem())));
+                                    .setReplyMarkup(KeyboardFactory.getCommentInLineButtons(comment.getOwnerWorkItem())));
                             octaneHttpClient.markCommentAsRead(octaneAuth, comment.getId());
                         });
 
@@ -51,5 +53,15 @@ public class PollUserDataThread extends Thread {
         } catch (InterruptedException e) {
             logger.debug("stop poll user data");
         }
+    }
+
+    private String prepareFormattedMessage(Comment comment) {
+        String MESSAGE_TEMPLATE = "\"%s %s | %s\n %s\n %s\"";
+        return String.format(MESSAGE_TEMPLATE,
+                comment.getOwnerWorkItem().getShortTypeName(),
+                comment.getOwnerWorkItem().getId(),
+                comment.getWorkItem().getName(),
+                comment.getAuthor().getName(),
+                Jsoup.parse(comment.getText()).text());
     }
 }
