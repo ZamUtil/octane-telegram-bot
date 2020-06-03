@@ -11,6 +11,8 @@ public interface Constants {
 
     //line buttons
     String LOGIN_BUTTON = "Login";
+    String REPLY_COMMENT_BUTTON = "Reply Comment";
+    String VIEW_ITEM_DETAILS_BUTTON = "View Comment details";
 
     //reply messages
     String PLEASE_PROVIDE_LOGIN_REPLY = "Please provide login";
