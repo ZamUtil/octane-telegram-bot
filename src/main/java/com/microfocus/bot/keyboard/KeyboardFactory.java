@@ -37,4 +37,15 @@ public class KeyboardFactory implements Constants {
         inlineKeyboard.setKeyboard(rowsInline);
         return inlineKeyboard;
     }
+
+    public static ReplyKeyboard getCommentInLineButtons() {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> rowInline = new ArrayList<>();
+        rowInline.add(new InlineKeyboardButton().setText(Constants.REPLY_COMMENT_BUTTON).setCallbackData(REPLY_COMMENT_BUTTON));
+        rowInline.add(new InlineKeyboardButton().setText(Constants.VIEW_ITEM_DETAILS_BUTTON).setCallbackData(VIEW_ITEM_DETAILS_BUTTON));
+        rowsInline.add(rowInline);
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
 }

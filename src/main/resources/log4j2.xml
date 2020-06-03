@@ -9,7 +9,7 @@
         <Logger name="com.microfocus" level="debug" additivity="false">
             <AppenderRef ref="LogToConsole"/>
         </Logger>
-        <Logger name="org.telegra" level="debug" additivity="false">
+        <Logger name="org" level="debug" additivity="false">
             <AppenderRef ref="LogToConsole"/>
         </Logger>
         <Root level="error">

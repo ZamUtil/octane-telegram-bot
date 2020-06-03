@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -30,9 +31,12 @@ public class OctaneBot extends AbilityBot implements Constants {
     private static final CustomToggle toggle = new CustomToggle();
     private final OctaneHttpClient octaneClient;
 
+    private final Map<String, Thread> userPollingMap;
+
     protected OctaneBot(String botToken, String botUsername) {
         super(botToken, botUsername, toggle);
         octaneClient = OctaneHttpClient.INSTANCE;
+        userPollingMap = new HashMap<>();
     }
 
     @Override
@@ -71,7 +75,6 @@ public class OctaneBot extends AbilityBot implements Constants {
                     }
                     silent.forceReply(PLEASE_PROVIDE_LOGIN_REPLY, getChatId(update));
                     break;
-                case Constants.LOGOUT_BUTTON_BIG_BUTTON:
                 default:
                     throw new UnsupportedOperationException("not impl" + update.getCallbackQuery().getData());
             }
@@ -89,6 +92,13 @@ public class OctaneBot extends AbilityBot implements Constants {
                     getUserDB(update).clear();
                     silent.execute(new SendMessage().setText("You are log out")
                             .setChatId(getChatId(update)));
+
+                    Thread pollThread = userPollingMap.get(getUserName(update));
+                    if (pollThread != null && !pollThread.isInterrupted()) {
+                        //stop poll thread
+                        pollThread.interrupt();
+                        userPollingMap.remove(getUserName(update));
+                    }
 
                     silent.execute(new SendMessage()
                             .setText("please login")
@@ -132,6 +142,14 @@ public class OctaneBot extends AbilityBot implements Constants {
                         silent.execute(new SendMessage().setText("You are sing in")
                                 .setChatId(getChatId(update))
                                 .setReplyMarkup(KeyboardFactory.getMainBigButtons()));
+
+                        //TODO get new comments
+
+                        //start polling
+                        logger.debug("test");
+                        Thread pollThread = new PollUserDataThread(getUserDB(update), silent, getChatId(update), octaneClient);
+                        pollThread.start();
+                        userPollingMap.put(getUserName(update), pollThread);
 
                     } else {
                         getUserDB(update).clear();
