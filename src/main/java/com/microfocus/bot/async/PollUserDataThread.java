@@ -56,7 +56,7 @@ public class PollUserDataThread extends Thread {
     }
 
     private String prepareFormattedMessage(Comment comment) {
-        String MESSAGE_TEMPLATE = "\"%s %s | %s\n %s\n %s\"";
+        String MESSAGE_TEMPLATE = "%s %s | %s\n Author: %s\n ==============\n %s";
         return String.format(MESSAGE_TEMPLATE,
                 comment.getOwnerWorkItem().getShortTypeName(),
                 comment.getOwnerWorkItem().getId(),

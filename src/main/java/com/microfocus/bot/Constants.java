@@ -12,12 +12,12 @@ public interface Constants {
     //line buttons
     String LOGIN_BUTTON = "Login";
     String REPLY_COMMENT_BUTTON = "Reply Comment";
-    String VIEW_ITEM_DETAILS_BUTTON = "View Comment details";
+    String VIEW_ITEM_DETAILS_BUTTON = "View Item details";
 
     //reply messages
-    String PLEASE_PROVIDE_LOGIN_REPLY = "Please provide login";
-    String PLEASE_PROVIDE_PASSWORD_REPLY = "Please provide password";
-    String PLEASE_PROVIDE_REPLY_MESSAGE_REPLY = "Please provide reply message";
+    String PLEASE_PROVIDE_LOGIN_REPLY = "Please Enter your Login to Octane Example of the Format - username@microfocus.com or just username";
+    String PLEASE_PROVIDE_PASSWORD_REPLY = "Please Enter your password";
+    String PLEASE_PROVIDE_REPLY_MESSAGE_REPLY = "Please write your respond";
 
     //DB row
     String USERNAME_PROP = "username";

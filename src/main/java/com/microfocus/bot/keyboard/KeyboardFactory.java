@@ -25,7 +25,7 @@ public class KeyboardFactory implements Constants {
         keyboard.add(row);
         keyboardMarkup.setKeyboard(keyboard);
         keyboardMarkup.setResizeKeyboard(true);
-        keyboardMarkup.setOneTimeKeyboard(true);
+        //keyboardMarkup.setOneTimeKeyboard(true);
 
         return keyboardMarkup;
     }
@@ -51,12 +51,11 @@ public class KeyboardFactory implements Constants {
         return inlineKeyboard;
     }
 
-    public static ReplyKeyboard getCommentInLineButtons(Pair<Long, String> itemData) {
+    public static ReplyKeyboard getReplyCommentInLineButtons(Pair<Long, String> itemData) {
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
         rowInline.add(new InlineKeyboardButton().setText(Constants.REPLY_COMMENT_BUTTON).setCallbackData(getCallbackData(REPLY_COMMENT_BUTTON, itemData.getLeft(), itemData.getRight())));
-        rowInline.add(new InlineKeyboardButton().setText(Constants.VIEW_ITEM_DETAILS_BUTTON).setCallbackData(getCallbackData(VIEW_ITEM_DETAILS_BUTTON, itemData.getLeft(), itemData.getRight())));
         rowsInline.add(rowInline);
         inlineKeyboard.setKeyboard(rowsInline);
         return inlineKeyboard;

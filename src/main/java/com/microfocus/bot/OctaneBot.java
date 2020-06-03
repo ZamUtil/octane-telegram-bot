@@ -57,11 +57,11 @@ public class OctaneBot extends AbilityBot implements Constants {
                 .privacy(PUBLIC)
                 .action(ctx -> {
                     silent.execute(new SendMessage()
-                            .setText("Welcome In Octane Bot")
+                            .setText("Welcome to Octane Bot!")
                             .setChatId(ctx.chatId()));
 
                     silent.execute(new SendMessage()
-                            .setText("please login")
+                            .setText("Please Login to start working with your Octane account")
                             .setChatId(ctx.chatId())
                             .setReplyMarkup(KeyboardFactory.getLoginInLineButtons()));
                 })
@@ -107,7 +107,7 @@ public class OctaneBot extends AbilityBot implements Constants {
                     }
 
                     silent.execute(new SendMessage()
-                            .setText("please login")
+                            .setText("Please Login to start working with your Octane account")
                             .setChatId(getChatId(update))
                             .setReplyMarkup(KeyboardFactory.getLoginInLineButtons()));
                     break;
@@ -140,12 +140,11 @@ public class OctaneBot extends AbilityBot implements Constants {
                     getUserDB(update).put(PASSWORD_PROP, update.getMessage().getText());
                     getUserDB(update).put(SING_IN_PROP, Boolean.TRUE.toString());
 
-                    silent.send("Try to login", getChatId(update));
-
                     String octaineUserId = octaneClient.login(createOctaneAuth(update));
                     getUserDB(update).put(OCTAINE_USER_ID, octaineUserId);
                     if (StringUtils.isNotBlank(octaineUserId)) {
-                        silent.execute(new SendMessage().setText("You are sing in")
+                        silent.execute(new SendMessage().setText(octaineUserId + ", Welcome to Octane!\n" +
+                                "You will be notified when any comment arrives")
                                 .setChatId(getChatId(update))
                                 .setReplyMarkup(KeyboardFactory.getMainBigButtons()));
 
@@ -155,10 +154,10 @@ public class OctaneBot extends AbilityBot implements Constants {
                         userPollingMap.put(getUserName(update), pollThread);
                     } else {
                         getUserDB(update).clear();
-                        silent.send("bad data, pls provide again", getChatId(update));
+                        silent.send("Login is failed, incorrect user name or password", getChatId(update));
 
                         silent.execute(new SendMessage()
-                                .setText("please login")
+                                .setText("Please Login to start working with your Octane account")
                                 .setChatId(getChatId(update))
                                 .setReplyMarkup(KeyboardFactory.getLoginInLineButtons()));
                     }
@@ -169,9 +168,9 @@ public class OctaneBot extends AbilityBot implements Constants {
                     octaneClient.postComment(createOctaneAuth(update), itemData, replyText);
 
                     silent.execute(new SendMessage()
-                            .setText("message was sent, want to proceed?")
+                            .setText("Your respond is sent")
                             .setChatId(getChatId(update))
-                            .setReplyMarkup(KeyboardFactory.getCommentInLineButtons(itemData)));
+                            .setReplyMarkup(KeyboardFactory.getReplyCommentInLineButtons(itemData)));
 
                     break;
                 default:
