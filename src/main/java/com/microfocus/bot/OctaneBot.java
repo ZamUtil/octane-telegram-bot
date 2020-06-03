@@ -15,7 +15,6 @@ import org.telegram.abilitybots.api.objects.Reply;
 import org.telegram.abilitybots.api.toggle.CustomToggle;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboard;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.util.HashMap;
@@ -113,7 +112,7 @@ public class OctaneBot extends AbilityBot implements Constants {
                             .setReplyMarkup(KeyboardFactory.getLoginInLineButtons()));
                     break;
                 case GET_MY_WORK_BIG_BUTTON:
-                    String myWork = octaneClient.getMyWork(getOctaneAuth(update));
+                    String myWork = octaneClient.getMyWork(createOctaneAuth(update));
 
                     silent.execute(new SendMessage().setText("You work is " + myWork)
                             .setChatId(getChatId(update))
@@ -124,11 +123,6 @@ public class OctaneBot extends AbilityBot implements Constants {
             }
         };
         return Reply.of(action, upd -> Flag.TEXT.test(upd) && isBigButton(upd));
-    }
-
-    @NotNull
-    private OctaneAuth getOctaneAuth(Update update) {
-        return new OctaneAuth(getUserDB(update));
     }
 
     @SuppressWarnings("unused")
@@ -148,7 +142,7 @@ public class OctaneBot extends AbilityBot implements Constants {
 
                     silent.send("Try to login", getChatId(update));
 
-                    String octaineUserId = octaneClient.login(getOctaneAuth(update));
+                    String octaineUserId = octaneClient.login(createOctaneAuth(update));
                     getUserDB(update).put(OCTAINE_USER_ID, octaineUserId);
                     if (StringUtils.isNotBlank(octaineUserId)) {
                         silent.execute(new SendMessage().setText("You are sing in")
@@ -171,7 +165,7 @@ public class OctaneBot extends AbilityBot implements Constants {
                     break;
                 case PLEASE_PROVIDE_REPLY_MESSAGE_REPLY:
                     String replyText = update.getMessage().getText();
-                    octaneClient.postComment(getOctaneAuth(update), readLastReplyCommentCallbackData(update), replyText);
+                    octaneClient.postComment(createOctaneAuth(update), readLastReplyCommentCallbackData(update), replyText);
                     break;
                 default:
                     throw new UnsupportedOperationException("not impl" + update.getMessage().getReplyToMessage().getText());
@@ -187,6 +181,10 @@ public class OctaneBot extends AbilityBot implements Constants {
 
     private boolean isReplyToBot(Update update) {
         return update.getMessage().getReplyToMessage().getFrom().getUserName().equalsIgnoreCase(getBotUsername());
+    }
+
+    private OctaneAuth createOctaneAuth(Update update) {
+        return new OctaneAuth(getUserDB(update));
     }
 
     private String getUserName(Update update) {

@@ -2,6 +2,8 @@ package com.microfocus.bot.http;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microfocus.bot.dto.Comment;
+import com.microfocus.bot.dto.CommentsContainer;
 import com.microfocus.bot.dto.OctaineUser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -101,16 +103,15 @@ public class OctaneHttpClient {
     public void postComment(OctaneAuth octaneAuth, Pair<Long, String> itemData, String text) {
         try {
             login(octaneAuth);
-            CommentsContainer commentsResponse = new CommentsContainer();
 
             Comment comment = new Comment();
             comment.setText(text);
             comment.setWorkItem(new Comment.OwnerItem(itemData.getLeft(), itemData.getRight()));
 
-            commentsResponse.setData(Collections.singletonList(comment));
+            CommentsContainer commentsReq = new CommentsContainer();
+            commentsReq.setData(Collections.singletonList(comment));
 
-            String data = objectMapper.writeValueAsString(commentsResponse);
-
+            String data = objectMapper.writeValueAsString(commentsReq);
             processPost(COMMENTS_URL, data);
         } catch (Exception ignored) {
         }

@@ -1,4 +1,4 @@
-package com.microfocus.bot.http;
+package com.microfocus.bot.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

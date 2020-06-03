@@ -1,7 +1,7 @@
 package com.microfocus.bot.keyboard;
 
 import com.microfocus.bot.Constants;
-import com.microfocus.bot.http.Comment;
+import com.microfocus.bot.dto.Comment;
 import org.jetbrains.annotations.NotNull;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
