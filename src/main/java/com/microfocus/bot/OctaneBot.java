@@ -3,6 +3,7 @@ package com.microfocus.bot;
 import com.microfocus.bot.http.OctaneAuth;
 import com.microfocus.bot.http.OctaneHttpClient;
 import com.microfocus.bot.keyboard.KeyboardFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.abilitybots.api.bot.AbilityBot;
@@ -125,8 +126,9 @@ public class OctaneBot extends AbilityBot implements Constants {
 
                     silent.send("Try to login", getChatId(update));
 
-                    boolean loginSuccess = octaneClient.login(new OctaneAuth(getUserDB(update)));
-                    if (loginSuccess) {
+                    String octaineUserId = octaneClient.login(new OctaneAuth(getUserDB(update)));
+                    getUserDB(update).put(OCTAINE_USER_ID, octaineUserId);
+                    if (StringUtils.isNotBlank(octaineUserId)) {
                         silent.execute(new SendMessage().setText("You are sing in")
                                 .setChatId(getChatId(update))
                                 .setReplyMarkup(KeyboardFactory.getMainBigButtons()));

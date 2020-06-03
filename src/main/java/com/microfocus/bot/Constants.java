@@ -20,6 +20,7 @@ public interface Constants {
     String USERNAME_PROP = "username";
     String PASSWORD_PROP = "password";
     String SING_IN_PROP = "singIn";
+    String OCTAINE_USER_ID = "octainUserId";
 
     default Set<String> getBigButtons() {
         HashSet<String> bigButtons = new HashSet<>();

@@ -1,6 +1,9 @@
 package com.microfocus.bot.http;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microfocus.bot.dto.OctaineUser;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -30,10 +33,11 @@ public class OctaneHttpClient {
     private static final String BASE_URL = "http://localhost:8080";
     private static final String AUTH_URL = "/authentication/sign_in";
     private static final String MY_WORK_URL = "/api/shared_spaces/1001/workspaces/1002/user_items";
+    private static final String USER_ID_URL = "/admin/users?fields=id&offset=0&name=%s";
 
     public static final OctaneHttpClient INSTANCE = new OctaneHttpClient();
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private final BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager();
     private final HttpClient httpClient = HttpClientBuilder.create()
@@ -45,14 +49,16 @@ public class OctaneHttpClient {
     private OctaneHttpClient() {
     }
 
-    public boolean login(OctaneAuth octaneAuth) {
+    public String login(OctaneAuth octaneAuth) {
         try {
             String data = objectMapper.writeValueAsString(octaneAuth);
             processPost(BASE_URL + AUTH_URL, data);
-            return true;
+            String result = processGet(BASE_URL + String.format(USER_ID_URL, octaneAuth.getUser()));
+            OctaineUser octaineUser = objectMapper.readValue(result, OctaineUser.class);
+            return octaineUser.getId();
         } catch (Exception ignored) {
         }
-        return false;
+        return StringUtils.EMPTY;
     }
 
     public String getMyWork(OctaneAuth octaneAuth) {
@@ -84,6 +90,7 @@ public class OctaneHttpClient {
             ExceptionUtils.rethrow(e);
         } finally {
             if (response != null) {
+                //What is it and goal?
                 EntityUtils.consumeQuietly(response.getEntity());
             }
         }
