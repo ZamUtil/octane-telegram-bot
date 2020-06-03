@@ -251,7 +251,7 @@ public class OctaneHttpClient {
 
     private OctaineUser getUserById(String id) {
         try {
-            String response = processGet(BASE_URL + "/admin/users?fields=first_name,last_name&limit=111&offset=0&order_by=id&query=%22(id%3D" + id + ")%22");
+            String response = processGet(BASE_URL + "/admin/users?fields=first_name,last_name,name&limit=111&offset=0&order_by=id&query=%22(id%3D" + id + ")%22");
             return objectMapper.readValue(response, OctaineUser.class);
         } catch (Exception ignored) {
         }

@@ -12,14 +12,12 @@ public class OctaineUser {
     private String login;
     private String password;
     private List<Object> latestMyWorkList;
-    private String firstName;
-    private String lastName;
+    private String name;
 
     @JsonProperty("data")
     private void unpackNested(List<Map<String,Object>> data) {
         this.id = (String) data.get(0).get("id");
-        this.firstName = (String) data.get(0).get("first_name");
-        this.lastName = (String) data.get(0).get("last_name");
+        this.name = (String) data.get(0).get("name");
     }
 
     public String getId() {
@@ -54,23 +52,11 @@ public class OctaineUser {
         this.latestMyWorkList = latestMyWorkList;
     }
 
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
     public String getName() {
-        return firstName + " " + lastName;
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
