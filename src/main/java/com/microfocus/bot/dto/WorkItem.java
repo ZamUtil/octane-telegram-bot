@@ -5,6 +5,7 @@ public class WorkItem {
     private Long id;
     private String subtype;
     private String name;
+    private String description;
 
     public WorkItem() {
     }
@@ -31,5 +32,23 @@ public class WorkItem {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    @Override
+    public String toString() {
+        return "WorkItem{" +
+                "id=" + id +
+                ", subtype='" + subtype + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                '}';
     }
 }

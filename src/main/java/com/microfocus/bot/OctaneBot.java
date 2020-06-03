@@ -1,6 +1,7 @@
 package com.microfocus.bot;
 
 import com.microfocus.bot.async.PollUserDataThread;
+import com.microfocus.bot.dto.WorkItem;
 import com.microfocus.bot.http.OctaneAuth;
 import com.microfocus.bot.http.OctaneHttpClient;
 import com.microfocus.bot.keyboard.KeyboardFactory;
@@ -81,6 +82,13 @@ public class OctaneBot extends AbilityBot implements Constants {
             } else if (data.startsWith(Constants.REPLY_COMMENT_BUTTON)) {
                 parseAndStoreLastReplyCommentCallbackData(update);
                 silent.forceReply(PLEASE_PROVIDE_REPLY_MESSAGE_REPLY, getChatId(update));
+            } else if (data.startsWith(Constants.VIEW_ITEM_DETAILS_BUTTON)) {
+                parseAndStoreLastReplyCommentCallbackData(update);
+                Pair<Long, String> workItemIdAndType = getWorkItemIdAndType(update);
+                WorkItem workItemBy = octaneClient.getWorkItemById(workItemIdAndType.getLeft());
+
+                //TODO
+                silent.send("WorkItem " + workItemBy.toString(), getChatId(update));
             } else {
                 throw new UnsupportedOperationException("not impl" + data);
             }
@@ -210,20 +218,25 @@ public class OctaneBot extends AbilityBot implements Constants {
     }
 
     private void parseAndStoreLastReplyCommentCallbackData(Update update) {
+        Pair<Long, String> pair = getWorkItemIdAndType(update);
+        getUserDB(update).put(LAST_REPLY_COMMENT_ITEM_ID, pair.getLeft().toString());
+        getUserDB(update).put(LAST_REPLY_COMMENT_ITEM_TYPE, pair.getRight());
+    }
+
+    private Pair<Long, String> getWorkItemIdAndType(Update update) {
         String data = update.getCallbackQuery().getData();
 
         Pattern p = Pattern.compile("\\{([^}]*)\\}");
         Matcher m = p.matcher(data);
         m.find();
         String[] split = m.group(1).split(":");
-
-        getUserDB(update).put(LAST_REPLY_COMMENT_ITEM_ID, split[0]);
-        getUserDB(update).put(LAST_REPLY_COMMENT_ITEM_TYPE, split[1]);
-
+        return Pair.of(Long.valueOf(split[0]), split[1]);
     }
 
     private Pair<Long, String> readLastReplyCommentCallbackData(Update update) {
-        return Pair.of(Long.valueOf(getUserDB(update).get(LAST_REPLY_COMMENT_ITEM_ID)), getUserDB(update).get(LAST_REPLY_COMMENT_ITEM_TYPE));
+        return Pair.of(
+                Long.valueOf(getUserDB(update).get(LAST_REPLY_COMMENT_ITEM_ID)),
+                getUserDB(update).get(LAST_REPLY_COMMENT_ITEM_TYPE));
     }
 
 }

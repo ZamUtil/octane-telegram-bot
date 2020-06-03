@@ -240,9 +240,9 @@ public class OctaneHttpClient {
     }
 
 
-    private WorkItem getWorkItemById(Long id) {
+    public WorkItem getWorkItemById(Long id) {
         try {
-            String response = processGet(WORK_ITEM_URL + "/" + id + "?fields=name");
+            String response = processGet(WORK_ITEM_URL + "/" + id + "?fields=name,description");
             return objectMapper.readValue(response, WorkItem.class);
         } catch (Exception ignored) {
         }
