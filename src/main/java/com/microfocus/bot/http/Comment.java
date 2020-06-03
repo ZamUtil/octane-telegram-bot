@@ -1,9 +1,11 @@
 package com.microfocus.bot.http;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Comment {
     private Long id;
 
@@ -12,8 +14,8 @@ public class Comment {
     @JsonProperty("owner_work_item")
     private OwnerItem workItem;
 
-    @JsonProperty("owner_run")
-    private OwnerItem run;
+/*    @JsonProperty("owner_run")
+    private OwnerItem run;*/
 
     public Comment() {
     }
@@ -42,19 +44,16 @@ public class Comment {
         this.workItem = workItem;
     }
 
-    public OwnerItem getRun() {
-        return run;
-    }
-
-    public void setRun(OwnerItem run) {
-        this.run = run;
-    }
-
-    static class OwnerItem {
+    public static class OwnerItem {
         private Long id;
         private String type;
 
         public OwnerItem() {
+        }
+
+        public OwnerItem(Long id, String type) {
+            this.id = id;
+            this.type = type;
         }
 
         public Long getId() {

@@ -17,12 +17,15 @@ public interface Constants {
     //reply messages
     String PLEASE_PROVIDE_LOGIN_REPLY = "Please provide login";
     String PLEASE_PROVIDE_PASSWORD_REPLY = "Please provide password";
+    String PLEASE_PROVIDE_REPLY_MESSAGE_REPLY = "Please provide reply message";
 
     //DB row
     String USERNAME_PROP = "username";
     String PASSWORD_PROP = "password";
     String SING_IN_PROP = "singIn";
     String OCTAINE_USER_ID = "octainUserId";
+    String LAST_REPLY_COMMENT_ITEM_ID = "lastReplyCommentItemId";
+    String LAST_REPLY_COMMENT_ITEM_TYPE = "lastReplyCommentItemType";
 
     default Set<String> getBigButtons() {
         HashSet<String> bigButtons = new HashSet<>();

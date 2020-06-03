@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microfocus.bot.dto.OctaineUser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -27,6 +28,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class OctaneHttpClient {
@@ -79,7 +81,7 @@ public class OctaneHttpClient {
         try {
             login(octaneAuth);
             String response = processGet(COMMENTS_URL + prepareGetCommentQuery(userId));
-            CommentsResponse commentsResponse = objectMapper.readValue(response, CommentsResponse.class);
+            CommentsContainer commentsResponse = objectMapper.readValue(response, CommentsContainer.class);
 
             return commentsResponse.getData();
         } catch (Exception e) {
@@ -96,8 +98,22 @@ public class OctaneHttpClient {
         }
     }
 
-    public void postComment() {
-        //http://localhost:8080/api/shared_spaces/1001/workspaces/1002/comments?fields=creation_time,mention_user,version_stamp,ordering,order_number,no_access_user,workspace_id,text,last_modified,client_lock_stamp,author,my_new_items_owner,visible_to
+    public void postComment(OctaneAuth octaneAuth, Pair<Long, String> itemData, String text) {
+        try {
+            login(octaneAuth);
+            CommentsContainer commentsResponse = new CommentsContainer();
+
+            Comment comment = new Comment();
+            comment.setText(text);
+            comment.setWorkItem(new Comment.OwnerItem(itemData.getLeft(), itemData.getRight()));
+
+            commentsResponse.setData(Collections.singletonList(comment));
+
+            String data = objectMapper.writeValueAsString(commentsResponse);
+
+            processPost(COMMENTS_URL, data);
+        } catch (Exception ignored) {
+        }
     }
 
     private String processGet(String uri) {
