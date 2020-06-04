@@ -265,9 +265,9 @@ public class OctaneBot extends AbilityBot implements Constants {
 
     private String getUserName(Update update) {
         if (update.getMessage() != null) {
-            return update.getMessage().getFrom().getUserName();
+            return update.getMessage().getFrom().getId().toString();
         }
-        return update.getCallbackQuery().getFrom().getUserName();
+        return update.getCallbackQuery().getFrom().getId().toString();
     }
 
     private Map<String, String> getUserDB(Update update) {
