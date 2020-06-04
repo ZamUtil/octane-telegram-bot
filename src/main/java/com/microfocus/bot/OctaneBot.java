@@ -136,7 +136,7 @@ public class OctaneBot extends AbilityBot implements Constants {
                     startPolling(update);
                     silent.execute(new SendMessage().setText("Push notifications was enabled").setChatId(getChatId(update)));
                     break;
-                case GET_LAST_FAILED_TEST_BIG_BUTTON:
+                default:
                     throw new UnsupportedOperationException("not impl" + update.getMessage().getText());
             }
         };
