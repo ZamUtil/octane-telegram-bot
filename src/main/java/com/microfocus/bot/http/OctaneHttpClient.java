@@ -118,7 +118,7 @@ public class OctaneHttpClient {
     public List<MyWorkFollowItem> getNewMyWork(OctaneAuth octaneAuth, Long userId) {
         try {
             login(octaneAuth);
-            String response = processGet(BASE_URL + MY_WORK_URL + prepareGetNewMyWorkQuery(userId));
+            String response = processGet(MY_WORK_URL + prepareGetNewMyWorkQuery(userId));
             MyWorkItemsContainer myWorkItemsContainer = objectMapper.readValue(response, MyWorkItemsContainer.class);
             List<MyWorkFollowItem> myWorkFollowItems = myWorkItemsContainer.getData();
             myWorkFollowItems.stream()
