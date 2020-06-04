@@ -9,8 +9,8 @@ public interface Constants {
 
     //big buttons
     String GET_MY_WORK_BIG_BUTTON = "Get My Work";
-    String DISABLE_PUSH_BIG_BUTTON = "Disable Push";
-    String ENABLE_PUSH_BIG_BUTTON = "Enable Push";
+    String DISABLE_PUSH_BIG_BUTTON = "Disable Push Notifications";
+    String ENABLE_PUSH_BIG_BUTTON = "Enable Push Notifications";
     String LOGOUT_BUTTON_BIG_BUTTON = "Logout";
 
     //line buttons
