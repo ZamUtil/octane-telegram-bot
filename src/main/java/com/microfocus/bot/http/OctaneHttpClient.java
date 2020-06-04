@@ -2,10 +2,7 @@ package com.microfocus.bot.http;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microfocus.bot.dto.Comment;
-import com.microfocus.bot.dto.CommentsContainer;
-import com.microfocus.bot.dto.OctaineUser;
-import com.microfocus.bot.dto.WorkItem;
+import com.microfocus.bot.dto.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -66,20 +63,29 @@ public class OctaneHttpClient {
         try {
             String data = objectMapper.writeValueAsString(octaneAuth);
             processPost(BASE_URL + AUTH_URL, data);
-            String result = processGet(BASE_URL + String.format(USER_ID_URL, octaneAuth.getUser()));
-            OctaineUser octaineUser = objectMapper.readValue(result, OctaineUser.class);
-            return octaineUser.getId();
+            String result = processGet(BASE_URL + USER_ID_URL + octaneAuth.getUser());
+            OctaneUser octaneUser = objectMapper.readValue(result, OctaneUser.class);
+            return octaneUser.getId();
         } catch (Exception ignored) {
         }
         return StringUtils.EMPTY;
     }
 
-    public String getMyWork(OctaneAuth octaneAuth) {
-        login(octaneAuth);
-        String response = processGet(BASE_URL + MY_WORK_URL);//TODO provide correct query
-
-        //TODO parse and return
-        return response;
+    public List<MyWorkFollowItem> getMyWork(OctaneAuth octaneAuth, Long userId) {
+        try{
+            login(octaneAuth);
+            String response = processGet(BASE_URL + MY_WORK_URL + prepareGetMyWorkQuery(userId));
+            MyWorkItemsContainer myWorkItemsContainer = objectMapper.readValue(response, MyWorkItemsContainer.class);
+            List<MyWorkFollowItem> myWorkFollowItems = myWorkItemsContainer.getData();
+            myWorkFollowItems.forEach(followItem -> {
+                followItem.setWorkItem(getWorkItemById(followItem.getWorkItem().getId()));
+                followItem.setAuthor(getUserById(userId.toString()));
+            });
+            return myWorkFollowItems;
+        } catch (Exception e) {
+            logger.error("Error while reading new comments", e);
+            return Collections.emptyList();
+        }
     }
 
     public List<Comment> getNewComments(OctaneAuth octaneAuth, Long userId) {
@@ -239,6 +245,12 @@ public class OctaneHttpClient {
                 "&query=%22((mention_user%3D%7B(id%3D" + userId + ")%7D);(my_new_items_owner%3D%7Bid%3D" + userId + "%7D))%22);";
     }
 
+    private String prepareGetMyWorkQuery(Long userId) {
+        return "?fields=my_follow_items_work_item&limit=10&offset=0&order_by=-creation_time" +
+                "&query=%22((user%3D%7Bid%3D" + userId + "%7D))%22);";
+    }
+
+
 
     public WorkItem getWorkItemById(Long id) {
         try {
@@ -249,10 +261,10 @@ public class OctaneHttpClient {
         return null;
     }
 
-    private OctaineUser getUserById(String id) {
+    private OctaneUser getUserById(String id) {
         try {
             String response = processGet(BASE_URL + "/admin/users?fields=first_name,last_name,name&limit=111&offset=0&order_by=id&query=%22(id%3D" + id + ")%22");
-            return objectMapper.readValue(response, OctaineUser.class);
+            return objectMapper.readValue(response, OctaneUser.class);
         } catch (Exception ignored) {
         }
         return null;

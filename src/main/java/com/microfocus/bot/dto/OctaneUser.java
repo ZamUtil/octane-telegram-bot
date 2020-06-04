@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 @JsonIgnoreProperties
-public class OctaineUser {
+public class OctaneUser {
     private String id;
     private String login;
     private String password;

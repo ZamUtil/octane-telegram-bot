@@ -4,6 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 public interface Constants {
+    //userId
+    Long USER_ID = 1001l;
+
     //big buttons
     String GET_MY_WORK_BIG_BUTTON = "getMyWork";
     String GET_LAST_FAILED_TEST_BIG_BUTTON = "getLastFailedTest";
@@ -23,7 +26,7 @@ public interface Constants {
     String USERNAME_PROP = "username";
     String PASSWORD_PROP = "password";
     String SING_IN_PROP = "singIn";
-    String OCTAINE_USER_ID = "octainUserId";
+    String OCTANE_USER_ID = "octaneUserId";
     String LAST_REPLY_COMMENT_ITEM_ID = "lastReplyCommentItemId";
     String LAST_REPLY_COMMENT_ITEM_TYPE = "lastReplyCommentItemType";
 

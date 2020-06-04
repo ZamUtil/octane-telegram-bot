@@ -16,7 +16,7 @@ public class Comment {
 
     private WorkItem workItem;
 
-    private OctaineUser author;
+    private OctaneUser author;
 
     public Comment() {
     }
@@ -53,11 +53,11 @@ public class Comment {
         this.workItem = workItem;
     }
 
-    public OctaineUser getAuthor() {
+    public OctaneUser getAuthor() {
         return author;
     }
 
-    public void setAuthor(OctaineUser author) {
+    public void setAuthor(OctaneUser author) {
         this.author = author;
     }
 

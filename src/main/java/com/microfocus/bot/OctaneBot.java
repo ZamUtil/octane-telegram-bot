@@ -1,12 +1,14 @@
 package com.microfocus.bot;
 
 import com.microfocus.bot.async.PollUserDataThread;
+import com.microfocus.bot.dto.MyWorkFollowItem;
 import com.microfocus.bot.dto.WorkItem;
 import com.microfocus.bot.http.OctaneAuth;
 import com.microfocus.bot.http.OctaneHttpClient;
 import com.microfocus.bot.keyboard.KeyboardFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.abilitybots.api.bot.AbilityBot;
@@ -19,6 +21,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -83,12 +86,10 @@ public class OctaneBot extends AbilityBot implements Constants {
                 parseAndStoreLastReplyCommentCallbackData(update);
                 silent.forceReply(PLEASE_PROVIDE_REPLY_MESSAGE_REPLY, getChatId(update));
             } else if (data.startsWith(Constants.VIEW_ITEM_DETAILS_BUTTON)) {
-                parseAndStoreLastReplyCommentCallbackData(update);
                 Pair<Long, String> workItemIdAndType = getWorkItemIdAndType(update);
-                WorkItem workItemBy = octaneClient.getWorkItemById(workItemIdAndType.getLeft());
+                WorkItem workItemById = octaneClient.getWorkItemById(workItemIdAndType.getLeft());
 
-                //TODO
-                silent.send("WorkItem " + workItemBy.toString(), getChatId(update));
+                silent.send(prepareFullWorkItemInfo(workItemById), getChatId(update));
             } else {
                 throw new UnsupportedOperationException("not impl" + data);
             }
@@ -120,17 +121,31 @@ public class OctaneBot extends AbilityBot implements Constants {
                             .setReplyMarkup(KeyboardFactory.getLoginInLineButtons()));
                     break;
                 case GET_MY_WORK_BIG_BUTTON:
-                    String myWork = octaneClient.getMyWork(createOctaneAuth(update));
 
-                    silent.execute(new SendMessage().setText("You work is " + myWork)
-                            .setChatId(getChatId(update))
-                            .setReplyMarkup(KeyboardFactory.getMainBigButtons()));
+                    List<MyWorkFollowItem> myWorkItems = octaneClient.getMyWork(createOctaneAuth(update), Constants.USER_ID);
+
+                    myWorkItems.stream()
+                            .map(MyWorkFollowItem::getWorkItem)
+                            .forEach(myWorkItem -> {
+                                silent.execute(new SendMessage()
+                                        .setText(prepareShotInfo(myWorkItem))
+                                        .setChatId(getChatId(update))
+                                        .setReplyMarkup(KeyboardFactory.getWorkItemInLineButtons(myWorkItem)));
+                            });
                     break;
                 case GET_LAST_FAILED_TEST_BIG_BUTTON:
                     throw new UnsupportedOperationException("not impl" + update.getMessage().getText());
             }
         };
         return Reply.of(action, upd -> Flag.TEXT.test(upd) && isBigButton(upd));
+    }
+
+    private String prepareShotInfo(WorkItem workItem) {
+        return workItem.getSubtype() + " " + workItem.getId() + " | " + workItem.getName();
+    }
+
+    private String prepareFullWorkItemInfo(WorkItem workItem) {
+        return prepareShotInfo(workItem) + "\n" + "Description: \n" + Jsoup.parse(workItem.getDescription()).text();
     }
 
     @SuppressWarnings("unused")
@@ -149,7 +164,7 @@ public class OctaneBot extends AbilityBot implements Constants {
                     getUserDB(update).put(SING_IN_PROP, Boolean.TRUE.toString());
 
                     String octaineUserId = octaneClient.login(createOctaneAuth(update));
-                    getUserDB(update).put(OCTAINE_USER_ID, octaineUserId);
+                    getUserDB(update).put(OCTANE_USER_ID, octaineUserId);
                     if (StringUtils.isNotBlank(octaineUserId)) {
                         silent.execute(new SendMessage().setText(octaineUserId + ", Welcome to Octane!\n" +
                                 "You will be notified when any comment arrives")

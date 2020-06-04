@@ -2,6 +2,7 @@ package com.microfocus.bot.keyboard;
 
 import com.microfocus.bot.Constants;
 import com.microfocus.bot.dto.Comment;
+import com.microfocus.bot.dto.WorkItem;
 import org.apache.commons.lang3.tuple.Pair;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -51,6 +52,16 @@ public class KeyboardFactory implements Constants {
         return inlineKeyboard;
     }
 
+    public static ReplyKeyboard getWorkItemInLineButtons(WorkItem workItem) {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> rowInline = new ArrayList<>();
+        rowInline.add(new InlineKeyboardButton().setText(Constants.VIEW_ITEM_DETAILS_BUTTON).setCallbackData(getCallbackData(VIEW_ITEM_DETAILS_BUTTON, workItem)));
+        rowsInline.add(rowInline);
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
+
     public static ReplyKeyboard getReplyCommentInLineButtons(Pair<Long, String> itemData) {
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
@@ -65,7 +76,11 @@ public class KeyboardFactory implements Constants {
         return getCallbackData(replyCommentButton, workItem.getId(), workItem.getType());
     }
 
-    private static String getCallbackData(String replyCommentButton, Long workItemId, String workItemType) {
-        return replyCommentButton + "{" + workItemId + ":" + workItemType + "}";
+    private static String getCallbackData(String viewItemDetailsButton, WorkItem workItem) {
+        return getCallbackData(viewItemDetailsButton, workItem.getId(), workItem.getSubtype());
+    }
+
+    private static String getCallbackData(String button, Long workItemId, String workItemType) {
+        return button + "{" + workItemId + ":" + workItemType + "}";
     }
 }
