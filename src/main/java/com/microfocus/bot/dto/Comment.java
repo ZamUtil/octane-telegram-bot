@@ -88,18 +88,6 @@ public class Comment {
         public void setType(String type) {
             this.type = type;
         }
-
-        public String getShortTypeName() {
-            switch (type) {
-                case "story":
-                    return "US";
-                case "epic":
-                    return "E";
-                case "defect":
-                    return "D";
-            }
-            return type;
-        }
     }
 }
 

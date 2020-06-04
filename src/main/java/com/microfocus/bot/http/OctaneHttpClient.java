@@ -46,6 +46,8 @@ public class OctaneHttpClient {
     private static final String COMMENTS_URL_INT = BASE_URL + "/internal-api/shared_spaces/1001/workspaces/1002" + "/comments";
     private static final String USER_ID_URL = "/admin/users";
 
+    private static final String USER_ITEM_URL = BASE_URL + BASE_API_PATH + "/workspace_users";
+
     public static final OctaneHttpClient INSTANCE = new OctaneHttpClient();
 
     private final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -305,7 +307,7 @@ public class OctaneHttpClient {
 
     public OctaneUser getUserById(String id) {
         try {
-            String response = processGet(BASE_URL + "/admin/users?fields=first_name,last_name,name&limit=111&offset=0&order_by=id&query=%22(id%3D" + id + ")%22");
+            String response = processGet(USER_ITEM_URL + "?fields=first_name,last_name,name&limit=111&offset=0&order_by=id&query=%22(id%3D" + id + ")%22");
             return objectMapper.readValue(response, OctaneUser.class);
         } catch (Exception ignored) {
         }

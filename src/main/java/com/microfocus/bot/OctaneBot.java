@@ -190,13 +190,14 @@ public class OctaneBot extends AbilityBot implements Constants {
                     OctaneUser userById = octaneClient.getUserById(octaneUserId);
                     getUserDB(update).put(USER_ID_PROP, octaneUserId);
                     if (StringUtils.isNotBlank(octaneUserId)) {
+
+                        startPolling(update);
+
                         silent.execute(new SendMessage().setText(userById.getFirstName() + " "
                                 + userById.getLastName() + ", Welcome to Octane!\n" +
                                 "You will be notified when any comment arrives")
                                 .setChatId(getChatId(update))
                                 .setReplyMarkup(KeyboardFactory.getMainBigButtons(isPoolingEnabled(update))));
-
-                        startPolling(update);
                     } else {
                         getUserDB(update).clear();
                         silent.send("Login is failed, incorrect user name or password", getChatId(update));

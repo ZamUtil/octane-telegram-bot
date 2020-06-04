@@ -10,23 +10,35 @@ public class BotMessageHelper {
     }
 
     public static String prepareShotInfo(WorkItem workItem) {
-        return workItem.getSubtype() + " " + workItem.getId() + " | " + workItem.getName();
+        return getShortTypeName(workItem.getSubtype()) + " " + workItem.getId() + " | " + workItem.getName();
     }
 
     public static String prepareFullWorkItemInfo(WorkItem workItem) {
         if (workItem.getDescription() == null) {
-            return prepareShotInfo(workItem) + "\n" + "Description: \n" + "IS EMPTY";
+            return prepareShotInfo(workItem) + "\n -------------- \nDescription: \n -------------- \n" + "IS EMPTY";
         }
-        return prepareShotInfo(workItem) + "\n" + "Description: \n" + Jsoup.parse(workItem.getDescription()).text();
+        return prepareShotInfo(workItem) + "\n -------------- \nDescription: \n -------------- \n" + Jsoup.parse(workItem.getDescription()).text();
     }
 
     public static String prepareFormattedMessage(Comment comment) {
-        String MESSAGE_TEMPLATE = "%s %s | %s\n Author: %s\n ==============\n %s";
+        String MESSAGE_TEMPLATE = "%s %s | %s\n -------------- \nAuthor  %s: \n -------------- \n %s";
         return String.format(MESSAGE_TEMPLATE,
-                comment.getOwnerWorkItem().getShortTypeName(),
+                getShortTypeName(comment.getOwnerWorkItem().getType()),
                 comment.getOwnerWorkItem().getId(),
                 comment.getWorkItem().getName(),
-                comment.getAuthor().getName(),
+                comment.getAuthor().getFirstName() + " " + comment.getAuthor().getId(),
                 Jsoup.parse(comment.getText()).text());
+    }
+
+    private static String getShortTypeName(String subtype) {
+        switch (subtype) {
+            case "story":
+                return "US";
+            case "epic":
+                return "E";
+            case "defect":
+                return "D";
+        }
+        return subtype;
     }
 }
