@@ -21,12 +21,12 @@ public class BotMessageHelper {
     }
 
     public static String prepareFormattedMessage(Comment comment) {
-        String MESSAGE_TEMPLATE = "%s %s | %s\n -------------- \nAuthor  %s: \n -------------- \n %s";
+        String MESSAGE_TEMPLATE = "%s %s | %s\n -------------- \nAuthor: %s \n -------------- \n %s";
         return String.format(MESSAGE_TEMPLATE,
                 getShortTypeName(comment.getOwnerWorkItem().getType()),
                 comment.getOwnerWorkItem().getId(),
                 comment.getWorkItem().getName(),
-                comment.getAuthor().getFirstName() + " " + comment.getAuthor().getId(),
+                comment.getAuthor().getFirstName() + " " + comment.getAuthor().getLastName(),
                 Jsoup.parse(comment.getText()).text());
     }
 

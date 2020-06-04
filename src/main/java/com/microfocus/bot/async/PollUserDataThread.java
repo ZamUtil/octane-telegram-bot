@@ -43,7 +43,7 @@ public class PollUserDataThread extends Thread {
                 handleNewComments(userId, octaneAuth);
                 handleNewMyWork(userId, octaneAuth);
 
-                TimeUnit.SECONDS.sleep(10);
+                TimeUnit.SECONDS.sleep(5);
             }
         } catch (InterruptedException e) {
             logger.debug("stop poll user data");
