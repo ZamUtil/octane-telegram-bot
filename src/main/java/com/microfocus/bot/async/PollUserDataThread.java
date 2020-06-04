@@ -53,7 +53,7 @@ public class PollUserDataThread extends Thread {
     private void handleNewComments(Long userId, OctaneAuth octaneAuth) {
         List<Comment> newComments = octaneHttpClient.getNewComments(octaneAuth, userId);
         if (CollectionUtils.isNotEmpty(newComments)) {
-            silent.send("New comments:", chatId);
+            silent.send("New comment(s):", chatId);
         }
         newComments.stream()
                 .filter(comment -> comment.getWorkItem() != null)//handle only work_item comments
