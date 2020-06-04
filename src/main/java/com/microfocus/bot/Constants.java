@@ -5,10 +5,9 @@ import java.util.Set;
 
 public interface Constants {
     //big buttons
-    String GET_MY_WORK_BIG_BUTTON = "getMyWork";
-    String GET_LAST_FAILED_TEST_BIG_BUTTON = "getLastFailedTest";
-    String DISABLE_PUSH_BIG_BUTTON = "disablePush";
-    String ENABLE_PUSH_BIG_BUTTON = "enablePush";
+    String GET_MY_WORK_BIG_BUTTON = "Get My Work";
+    String DISABLE_PUSH_BIG_BUTTON = "Disable Push";
+    String ENABLE_PUSH_BIG_BUTTON = "Enable Push";
     String LOGOUT_BUTTON_BIG_BUTTON = "Logout";
 
     //line buttons
@@ -32,7 +31,6 @@ public interface Constants {
     default Set<String> getBigButtons() {
         HashSet<String> bigButtons = new HashSet<>();
         bigButtons.add(GET_MY_WORK_BIG_BUTTON);
-        //bigButtons.add(GET_LAST_FAILED_TEST_BIG_BUTTON);
         bigButtons.add(DISABLE_PUSH_BIG_BUTTON);
         bigButtons.add(ENABLE_PUSH_BIG_BUTTON);
         bigButtons.add(LOGOUT_BUTTON_BIG_BUTTON);

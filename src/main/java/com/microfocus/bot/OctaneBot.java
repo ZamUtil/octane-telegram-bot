@@ -9,7 +9,6 @@ import com.microfocus.bot.http.OctaneHttpClient;
 import com.microfocus.bot.keyboard.KeyboardFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.abilitybots.api.bot.AbilityBot;
@@ -90,7 +89,7 @@ public class OctaneBot extends AbilityBot implements Constants {
                 Pair<Long, String> workItemIdAndType = getWorkItemIdAndType(update);
                 WorkItem workItemById = octaneClient.getWorkItemById(workItemIdAndType.getLeft());
 
-                silent.send(prepareFullWorkItemInfo(workItemById), getChatId(update));
+                silent.send(BotMessageHelper.prepareFullWorkItemInfo(workItemById), getChatId(update));
             } else {
                 throw new UnsupportedOperationException("not impl" + data);
             }
@@ -106,7 +105,8 @@ public class OctaneBot extends AbilityBot implements Constants {
             switch (update.getMessage().getText()) {
                 case LOGOUT_BUTTON_BIG_BUTTON:
                     getUserDB(update).clear();
-                    silent.execute(new SendMessage().setText("You are log out")
+                    silent.execute(new SendMessage()
+                            .setText("You are log out")
                             .setChatId(getChatId(update)));
 
                     stopPolling(update);
@@ -125,7 +125,7 @@ public class OctaneBot extends AbilityBot implements Constants {
                             .map(MyWorkFollowItem::getWorkItem)
                             .forEach(myWorkItem -> {
                                 silent.execute(new SendMessage()
-                                        .setText(prepareShotInfo(myWorkItem))
+                                        .setText(BotMessageHelper.prepareShotInfo(myWorkItem))
                                         .setChatId(getChatId(update))
                                         .setReplyMarkup(KeyboardFactory.getWorkItemInLineButtons(myWorkItem)));
                             });
@@ -138,19 +138,11 @@ public class OctaneBot extends AbilityBot implements Constants {
                     startPolling(update);
                     silent.execute(new SendMessage().setText("Push notifications was enabled").setChatId(getChatId(update)));
                     break;
-                case GET_LAST_FAILED_TEST_BIG_BUTTON:
+                default:
                     throw new UnsupportedOperationException("not impl" + update.getMessage().getText());
             }
         };
         return Reply.of(action, upd -> Flag.TEXT.test(upd) && isBigButton(upd));
-    }
-
-    private String prepareShotInfo(WorkItem workItem) {
-        return workItem.getSubtype() + " " + workItem.getId() + " | " + workItem.getName();
-    }
-
-    private String prepareFullWorkItemInfo(WorkItem workItem) {
-        return prepareShotInfo(workItem) + "\n" + "Description: \n" + Jsoup.parse(workItem.getDescription()).text();
     }
 
     @SuppressWarnings("unused")
@@ -218,7 +210,6 @@ public class OctaneBot extends AbilityBot implements Constants {
     private void stopPolling(Update update) {
         Thread pollThread = userPollingMap.get(getUserName(update));
         if (pollThread != null && !pollThread.isInterrupted()) {
-            //stop poll thread
             pollThread.interrupt();
             userPollingMap.remove(getUserName(update));
         }

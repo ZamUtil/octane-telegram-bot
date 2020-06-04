@@ -105,6 +105,7 @@ public class OctaneHttpClient {
             comments.forEach(comment -> {
                 comment.setWorkItem(getWorkItemById(comment.getOwnerWorkItem().getId()));
                 comment.setAuthor(getUserById(comment.getAuthor().getId()));
+                markCommentAsRead(comment.getId());
             });
 
             return comments;
@@ -114,17 +115,36 @@ public class OctaneHttpClient {
         return new ArrayList<>();
     }
 
-    public void markCommentAsRead(OctaneAuth octaneAuth, Long commentId) {
+    public List<MyWorkFollowItem> getNewMyWork(OctaneAuth octaneAuth, Long userId) {
         try {
             login(octaneAuth);
+            String response = processGet(BASE_URL + MY_WORK_URL + prepareGetNewMyWorkQuery(userId));
+            MyWorkItemsContainer myWorkItemsContainer = objectMapper.readValue(response, MyWorkItemsContainer.class);
+            List<MyWorkFollowItem> myWorkFollowItems = myWorkItemsContainer.getData();
+            myWorkFollowItems.stream()
+                    .filter(followItem -> followItem.getWorkItem() != null)
+                    .forEach(followItem -> {
+                        followItem.setWorkItem(getWorkItemById(followItem.getWorkItem().getId()));
+                        followItem.setAuthor(getUserById(userId.toString()));
+
+                        markMyWorkAsRead(followItem.getId());
+                    });
+            return myWorkFollowItems;
+        } catch (Exception e) {
+            logger.error("Error while reading new comments", e);
+            return Collections.emptyList();
+        }
+    }
+
+    private void markCommentAsRead(Long commentId) {
+        try {
             processPut(COMMENTS_URL_INT + "/" + commentId + "/mark_as_read", "{\"id\":\"" + commentId + "\"}");
         } catch (Exception ignored) {
         }
     }
 
-    public void markMyWorkAsRead(OctaneAuth octaneAuth, Long myWorkId) {
+    private void markMyWorkAsRead(Long myWorkId) {
         try {
-            login(octaneAuth);
             processPut(MY_WORK_URL + "/" + myWorkId, "{\"is_new\":false,\"id\":\"" + myWorkId + "\"}");
         } catch (Exception ignored) {
         }
@@ -264,6 +284,10 @@ public class OctaneHttpClient {
                 "&query=%22((user%3D%7Bid%3D" + userId + "%7D))%22);";
     }
 
+    private String prepareGetNewMyWorkQuery(Long userId) {
+        return "?fields=my_follow_items_work_item&limit=10&offset=0&order_by=-creation_time" +
+                "&query=%22((user%3D%7Bid%3D" + userId + "%7D;is_new=true))%22);";
+    }
     private String prepareGetUserIdQuery(String name) {
         return "?fields=id&query=%22(name%3D'" + name +"')%22";
     }
