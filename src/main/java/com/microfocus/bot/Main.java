@@ -11,8 +11,8 @@ public class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(PollUserDataThread.class);
 
-    public static final String BOT_USER_NAME = "octane_hackathon2020_bot";
-    public static final String BOT_TOKEN = "1094483244:AAFlGShQHGuSLcV8SejjSXesuW27lC1k1CQ";
+    public static final String BOT_USER_NAME = "";
+    public static final String BOT_TOKEN = "";
 
     public static void main(String[] args) {
         ApiContextInitializer.init();
