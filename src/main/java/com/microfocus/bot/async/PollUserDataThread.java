@@ -1,11 +1,11 @@
 package com.microfocus.bot.async;
 
+import com.microfocus.bot.BotMessageHelper;
 import com.microfocus.bot.Constants;
-import com.microfocus.bot.dto.Comment;
+import com.microfocus.bot.dto.MyWorkFollowItem;
 import com.microfocus.bot.http.OctaneAuth;
 import com.microfocus.bot.http.OctaneHttpClient;
 import com.microfocus.bot.keyboard.KeyboardFactory;
-import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.abilitybots.api.sender.SilentSender;
@@ -42,10 +42,18 @@ public class PollUserDataThread extends Thread {
                         .filter(comment -> comment.getWorkItem() != null)//handle only work_item comments
                         .forEach(comment -> {
                             silent.execute(new SendMessage()
-                                    .setText(prepareFormattedMessage(comment))
+                                    .setText(BotMessageHelper.prepareFormattedMessage(comment))
                                     .setChatId(chatId)
                                     .setReplyMarkup(KeyboardFactory.getCommentInLineButtons(comment.getOwnerWorkItem())));
-                            octaneHttpClient.markCommentAsRead(octaneAuth, comment.getId());
+                        });
+
+                octaneHttpClient.getNewMyWork(octaneAuth, userId).stream()
+                        .map(MyWorkFollowItem::getWorkItem)
+                        .forEach(myWorkItem -> {
+                            silent.execute(new SendMessage()
+                                    .setText(BotMessageHelper.prepareShotInfo(myWorkItem))
+                                    .setChatId(chatId)
+                                    .setReplyMarkup(KeyboardFactory.getWorkItemInLineButtons(myWorkItem)));
                         });
 
                 TimeUnit.SECONDS.sleep(10);
@@ -53,15 +61,5 @@ public class PollUserDataThread extends Thread {
         } catch (InterruptedException e) {
             logger.debug("stop poll user data");
         }
-    }
-
-    private String prepareFormattedMessage(Comment comment) {
-        String MESSAGE_TEMPLATE = "%s %s | %s\n Author: %s\n ==============\n %s";
-        return String.format(MESSAGE_TEMPLATE,
-                comment.getOwnerWorkItem().getShortTypeName(),
-                comment.getOwnerWorkItem().getId(),
-                comment.getWorkItem().getName(),
-                comment.getAuthor().getName(),
-                Jsoup.parse(comment.getText()).text());
     }
 }
