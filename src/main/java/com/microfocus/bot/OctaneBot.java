@@ -2,6 +2,7 @@ package com.microfocus.bot;
 
 import com.microfocus.bot.async.PollUserDataThread;
 import com.microfocus.bot.dto.MyWorkFollowItem;
+import com.microfocus.bot.dto.OctaneUser;
 import com.microfocus.bot.dto.WorkItem;
 import com.microfocus.bot.http.OctaneAuth;
 import com.microfocus.bot.http.OctaneHttpClient;
@@ -116,8 +117,9 @@ public class OctaneBot extends AbilityBot implements Constants {
                             .setReplyMarkup(KeyboardFactory.getLoginInLineButtons()));
                     break;
                 case GET_MY_WORK_BIG_BUTTON:
-
-                    List<MyWorkFollowItem> myWorkItems = octaneClient.getMyWork(createOctaneAuth(update), Constants.USER_ID);
+                    Long userId = Long.valueOf(getUserDB(update).get(Constants.USER_ID_PROP));
+                    List<MyWorkFollowItem> myWorkItems = octaneClient.getMyWork(createOctaneAuth(update),
+                            userId);
 
                     myWorkItems.stream()
                             .map(MyWorkFollowItem::getWorkItem)
@@ -166,10 +168,12 @@ public class OctaneBot extends AbilityBot implements Constants {
                     getUserDB(update).put(PASSWORD_PROP, update.getMessage().getText());
                     getUserDB(update).put(SING_IN_PROP, Boolean.TRUE.toString());
 
-                    String octaineUserId = octaneClient.login(createOctaneAuth(update));
-                    getUserDB(update).put(OCTANE_USER_ID, octaineUserId);
-                    if (StringUtils.isNotBlank(octaineUserId)) {
-                        silent.execute(new SendMessage().setText(octaineUserId + ", Welcome to Octane!\n" +
+                    String octaneUserId = octaneClient.login(createOctaneAuth(update));
+                    OctaneUser userById = octaneClient.getUserById(octaneUserId);
+                    getUserDB(update).put(USER_ID_PROP, octaneUserId);
+                    if (StringUtils.isNotBlank(octaneUserId)) {
+                        silent.execute(new SendMessage().setText(userById.getFirstName() + " "
+                                + userById.getLastName() + ", Welcome to Octane!\n" +
                                 "You will be notified when any comment arrives")
                                 .setChatId(getChatId(update))
                                 .setReplyMarkup(KeyboardFactory.getMainBigButtons()));

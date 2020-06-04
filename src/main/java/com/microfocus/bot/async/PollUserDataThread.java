@@ -34,8 +34,7 @@ public class PollUserDataThread extends Thread {
         try {
             while (true) {
                 logger.debug("poll data for user " + userData.get(Constants.USERNAME_PROP));
-                //Long userId = Long.valueOf(userData.get(OCTAINE_USER_ID));
-                Long userId = Constants.USER_ID;
+                Long userId = Long.valueOf(userData.get(Constants.USER_ID_PROP));
                 OctaneAuth octaneAuth = new OctaneAuth(userData);
 
                 octaneHttpClient.getNewComments(octaneAuth, userId).stream()

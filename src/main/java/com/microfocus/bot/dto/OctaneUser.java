@@ -13,11 +13,15 @@ public class OctaneUser {
     private String password;
     private List<Object> latestMyWorkList;
     private String name;
+    private String firstName;
+    private String lastName;
 
     @JsonProperty("data")
     private void unpackNested(List<Map<String,Object>> data) {
         this.id = (String) data.get(0).get("id");
         this.name = (String) data.get(0).get("name");
+        this.firstName = (String) data.get(0).get("first_name");
+        this.lastName = (String) data.get(0).get("last_name");
     }
 
     public String getId() {
@@ -58,5 +62,21 @@ public class OctaneUser {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 }

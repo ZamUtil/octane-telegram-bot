@@ -31,6 +31,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class OctaneHttpClient {
 
@@ -39,11 +40,11 @@ public class OctaneHttpClient {
     private static final String BASE_URL = "http://localhost:8080";
     private static final String BASE_API_PATH = "/api/shared_spaces/1001/workspaces/1002";
     private static final String AUTH_URL = "/authentication/sign_in";
-    private static final String MY_WORK_URL = BASE_API_PATH + "/user_items";
+    private static final String MY_WORK_URL = BASE_URL + BASE_API_PATH + "/user_items";
     private static final String WORK_ITEM_URL = BASE_URL+ BASE_API_PATH + "/work_items";
     private static final String COMMENTS_URL = BASE_URL + BASE_API_PATH + "/comments";
     private static final String COMMENTS_URL_INT = BASE_URL + "/internal-api/shared_spaces/1001/workspaces/1002" + "/comments";
-    private static final String USER_ID_URL = "/admin/users?fields=id&offset=0&name=%s";
+    private static final String USER_ID_URL = "/admin/users";
 
     public static final OctaneHttpClient INSTANCE = new OctaneHttpClient();
 
@@ -63,12 +64,11 @@ public class OctaneHttpClient {
         try {
             String data = objectMapper.writeValueAsString(octaneAuth);
             processPost(BASE_URL + AUTH_URL, data);
-            //TODO temporary changes
-//            String result = processGet(BASE_URL + USER_ID_URL + octaneAuth.getUser());
-//            OctaneUser octaneUser = objectMapper.readValue(result, OctaneUser.class);
-//            return octaneUser.getId();
-            return Constants.USER_ID.toString();
+            String result = processGet(BASE_URL + USER_ID_URL + prepareGetUserIdQuery(octaneAuth.getUser()));
+            OctaneUser octaneUser = objectMapper.readValue(result, OctaneUser.class);
+            return octaneUser.getId();
         } catch (Exception ignored) {
+            ignored.getStackTrace();
         }
         return StringUtils.EMPTY;
     }
@@ -76,11 +76,13 @@ public class OctaneHttpClient {
     public List<MyWorkFollowItem> getMyWork(OctaneAuth octaneAuth, Long userId) {
         try{
             login(octaneAuth);
-            String response = processGet(BASE_URL + MY_WORK_URL + prepareGetMyWorkQuery(userId));
+            String response = processGet(MY_WORK_URL + prepareGetMyWorkQuery(userId));
             MyWorkItemsContainer myWorkItemsContainer = objectMapper.readValue(response, MyWorkItemsContainer.class);
-            List<MyWorkFollowItem> myWorkFollowItems = myWorkItemsContainer.getData();
-            myWorkFollowItems.stream()
+            List<MyWorkFollowItem> myWorkFollowItems = myWorkItemsContainer.getData()
+                    .stream()
                     .filter(followItem -> followItem.getWorkItem() != null )
+                    .collect(Collectors.toList());
+            myWorkFollowItems
                     .forEach(followItem -> {
                         followItem.setWorkItem(getWorkItemById(followItem.getWorkItem().getId()));
                         followItem.setAuthor(getUserById(userId.toString()));
@@ -123,7 +125,7 @@ public class OctaneHttpClient {
     public void markMyWorkAsRead(OctaneAuth octaneAuth, Long myWorkId) {
         try {
             login(octaneAuth);
-            processPut(BASE_URL + MY_WORK_URL + "/" + myWorkId, "{\"is_new\":false,\"id\":\"" + myWorkId + "\"}");
+            processPut(MY_WORK_URL + "/" + myWorkId, "{\"is_new\":false,\"id\":\"" + myWorkId + "\"}");
         } catch (Exception ignored) {
         }
     }
@@ -262,6 +264,10 @@ public class OctaneHttpClient {
                 "&query=%22((user%3D%7Bid%3D" + userId + "%7D))%22);";
     }
 
+    private String prepareGetUserIdQuery(String name) {
+        return "?fields=id&query=%22(name%3D'" + name +"')%22";
+    }
+
 
 
     public WorkItem getWorkItemById(Long id) {
@@ -273,7 +279,7 @@ public class OctaneHttpClient {
         return null;
     }
 
-    private OctaneUser getUserById(String id) {
+    public OctaneUser getUserById(String id) {
         try {
             String response = processGet(BASE_URL + "/admin/users?fields=first_name,last_name,name&limit=111&offset=0&order_by=id&query=%22(id%3D" + id + ")%22");
             return objectMapper.readValue(response, OctaneUser.class);
