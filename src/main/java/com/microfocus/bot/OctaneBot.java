@@ -77,7 +77,7 @@ public class OctaneBot extends AbilityBot implements Constants {
         Consumer<Update> action = update -> {
             String data = update.getCallbackQuery().getData();
             if (Constants.LOGIN_BUTTON.equals(data)) {
-                if (getUserDB(update).containsValue(SING_IN_PROP) && getUserDB(update).get(SING_IN_PROP).equalsIgnoreCase(Boolean.TRUE.toString())) {
+                if (isUserSingIn(update)) {
                     silent.send("Already sing-in", getChatId(update));
                 }
 
@@ -117,6 +117,10 @@ public class OctaneBot extends AbilityBot implements Constants {
                             .setReplyMarkup(KeyboardFactory.getLoginInLineButtons()));
                     break;
                 case GET_MY_WORK_BIG_BUTTON:
+                    if (isUserSingIn(update)) {
+                        silent.send("You are not logged", getChatId(update));
+                        return;
+                    }
                     Long userId = Long.valueOf(getUserDB(update).get(Constants.USER_ID_PROP));
                     List<MyWorkFollowItem> myWorkItems = octaneClient.getMyWork(createOctaneAuth(update),
                             userId);
@@ -131,12 +135,26 @@ public class OctaneBot extends AbilityBot implements Constants {
                             });
                     break;
                 case DISABLE_PUSH_BIG_BUTTON:
+                    if (isUserSingIn(update)) {
+                        silent.send("You are not logged", getChatId(update));
+                        return;
+                    }
                     stopPolling(update);
-                    silent.execute(new SendMessage().setText("Push notifications was disabled").setChatId(getChatId(update)));
+                    silent.execute(new SendMessage()
+                            .setText("Push notifications was disabled")
+                            .setChatId(getChatId(update))
+                            .setReplyMarkup(KeyboardFactory.getMainBigButtons(true, false)));
                     break;
                 case ENABLE_PUSH_BIG_BUTTON:
+                    if (isUserSingIn(update)) {
+                        silent.send("You are not logged", getChatId(update));
+                        return;
+                    }
                     startPolling(update);
-                    silent.execute(new SendMessage().setText("Push notifications was enabled").setChatId(getChatId(update)));
+                    silent.execute(new SendMessage()
+                            .setText("Push notifications was enabled")
+                            .setChatId(getChatId(update))
+                            .setReplyMarkup(KeyboardFactory.getMainBigButtons(false, true)));
                     break;
                 default:
                     throw new UnsupportedOperationException("not impl" + update.getMessage().getText());
@@ -149,6 +167,10 @@ public class OctaneBot extends AbilityBot implements Constants {
     public Reply replyToMessages() {
         Consumer<Update> action = update -> {
             if (!isReplyToBot(update)) {
+                return;
+            }
+            if (isUserSingIn(update)) {
+                silent.send("You are not logged", getChatId(update));
                 return;
             }
             switch (update.getMessage().getReplyToMessage().getText()) {
@@ -168,7 +190,7 @@ public class OctaneBot extends AbilityBot implements Constants {
                                 + userById.getLastName() + ", Welcome to Octane!\n" +
                                 "You will be notified when any comment arrives")
                                 .setChatId(getChatId(update))
-                                .setReplyMarkup(KeyboardFactory.getMainBigButtons()));
+                                .setReplyMarkup(KeyboardFactory.getMainBigButtons(false, true)));
 
                         startPolling(update);
                     } else {
@@ -264,6 +286,10 @@ public class OctaneBot extends AbilityBot implements Constants {
         return Pair.of(
                 Long.valueOf(getUserDB(update).get(LAST_REPLY_COMMENT_ITEM_ID)),
                 getUserDB(update).get(LAST_REPLY_COMMENT_ITEM_TYPE));
+    }
+
+    private boolean isUserSingIn(Update update) {
+        return getUserDB(update).containsValue(SING_IN_PROP) && getUserDB(update).get(SING_IN_PROP).equalsIgnoreCase(Boolean.TRUE.toString());
     }
 
 }
