@@ -80,10 +80,12 @@ public class OctaneHttpClient {
             String response = processGet(BASE_URL + MY_WORK_URL + prepareGetMyWorkQuery(userId));
             MyWorkItemsContainer myWorkItemsContainer = objectMapper.readValue(response, MyWorkItemsContainer.class);
             List<MyWorkFollowItem> myWorkFollowItems = myWorkItemsContainer.getData();
-            myWorkFollowItems.forEach(followItem -> {
-                followItem.setWorkItem(getWorkItemById(followItem.getWorkItem().getId()));
-                followItem.setAuthor(getUserById(userId.toString()));
-            });
+            myWorkFollowItems.stream()
+                    .filter(followItem -> followItem.getWorkItem() != null )
+                    .forEach(followItem -> {
+                        followItem.setWorkItem(getWorkItemById(followItem.getWorkItem().getId()));
+                        followItem.setAuthor(getUserById(userId.toString()));
+                    });
             return myWorkFollowItems;
         } catch (Exception e) {
             logger.error("Error while reading new comments", e);
