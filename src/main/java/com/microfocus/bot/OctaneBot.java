@@ -302,7 +302,7 @@ public class OctaneBot extends AbilityBot implements Constants {
     }
 
     private boolean isUserSingIn(Update update) {
-        return getUserDB(update).containsValue(SING_IN_PROP) && getUserDB(update).get(SING_IN_PROP).equalsIgnoreCase(Boolean.TRUE.toString());
+        return getUserDB(update).containsKey(SING_IN_PROP) && getUserDB(update).get(SING_IN_PROP).equalsIgnoreCase(Boolean.TRUE.toString());
     }
 
 }
