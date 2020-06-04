@@ -108,12 +108,7 @@ public class OctaneBot extends AbilityBot implements Constants {
                     silent.execute(new SendMessage().setText("You are log out")
                             .setChatId(getChatId(update)));
 
-                    Thread pollThread = userPollingMap.get(getUserName(update));
-                    if (pollThread != null && !pollThread.isInterrupted()) {
-                        //stop poll thread
-                        pollThread.interrupt();
-                        userPollingMap.remove(getUserName(update));
-                    }
+                    stopPolling(update);
 
                     silent.execute(new SendMessage()
                             .setText("Please Login to start working with your Octane account")
@@ -132,6 +127,14 @@ public class OctaneBot extends AbilityBot implements Constants {
                                         .setChatId(getChatId(update))
                                         .setReplyMarkup(KeyboardFactory.getWorkItemInLineButtons(myWorkItem)));
                             });
+                    break;
+                case DISABLE_PUSH_BIG_BUTTON:
+                    stopPolling(update);
+                    silent.execute(new SendMessage().setText("Push notifications was disabled").setChatId(getChatId(update)));
+                    break;
+                case ENABLE_PUSH_BIG_BUTTON:
+                    startPolling(update);
+                    silent.execute(new SendMessage().setText("Push notifications was enabled").setChatId(getChatId(update)));
                     break;
                 case GET_LAST_FAILED_TEST_BIG_BUTTON:
                     throw new UnsupportedOperationException("not impl" + update.getMessage().getText());
@@ -171,10 +174,7 @@ public class OctaneBot extends AbilityBot implements Constants {
                                 .setChatId(getChatId(update))
                                 .setReplyMarkup(KeyboardFactory.getMainBigButtons()));
 
-                        //start polling
-                        Thread pollThread = new PollUserDataThread(getUserDB(update), silent, getChatId(update), octaneClient);
-                        pollThread.start();
-                        userPollingMap.put(getUserName(update), pollThread);
+                        startPolling(update);
                     } else {
                         getUserDB(update).clear();
                         silent.send("Login is failed, incorrect user name or password", getChatId(update));
@@ -201,6 +201,23 @@ public class OctaneBot extends AbilityBot implements Constants {
             }
         };
         return Reply.of(action, REPLY);
+    }
+
+    private void startPolling(Update update) {
+        if (userPollingMap.get(getUserName(update)) == null) {
+            Thread pollThread = new PollUserDataThread(getUserDB(update), silent, getChatId(update), octaneClient);
+            pollThread.start();
+            userPollingMap.put(getUserName(update), pollThread);
+        }
+    }
+
+    private void stopPolling(Update update) {
+        Thread pollThread = userPollingMap.get(getUserName(update));
+        if (pollThread != null && !pollThread.isInterrupted()) {
+            //stop poll thread
+            pollThread.interrupt();
+            userPollingMap.remove(getUserName(update));
+        }
     }
 
     @Override

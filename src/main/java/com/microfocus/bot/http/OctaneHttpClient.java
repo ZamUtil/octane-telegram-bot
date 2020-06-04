@@ -24,7 +24,6 @@ import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.telegram.telegrambots.meta.api.objects.User;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -117,6 +116,14 @@ public class OctaneHttpClient {
         try {
             login(octaneAuth);
             processPut(COMMENTS_URL_INT + "/" + commentId + "/mark_as_read", "{\"id\":\"" + commentId + "\"}");
+        } catch (Exception ignored) {
+        }
+    }
+
+    public void markMyWorkAsRead(OctaneAuth octaneAuth, Long myWorkId) {
+        try {
+            login(octaneAuth);
+            processPut(BASE_URL + MY_WORK_URL + "/" + myWorkId, "{\"is_new\":false,\"id\":\"" + myWorkId + "\"}");
         } catch (Exception ignored) {
         }
     }

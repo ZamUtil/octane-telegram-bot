@@ -21,7 +21,9 @@ public class KeyboardFactory implements Constants {
         List<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow row = new KeyboardRow();
         row.add(new KeyboardButton(GET_MY_WORK_BIG_BUTTON));
-        row.add(new KeyboardButton(GET_LAST_FAILED_TEST_BIG_BUTTON));
+        row.add(new KeyboardButton(ENABLE_PUSH_BIG_BUTTON));
+        row.add(new KeyboardButton(DISABLE_PUSH_BIG_BUTTON));
+        //row.add(new KeyboardButton(GET_LAST_FAILED_TEST_BIG_BUTTON));
         row.add(new KeyboardButton(LOGOUT_BUTTON_BIG_BUTTON));
         keyboard.add(row);
         keyboardMarkup.setKeyboard(keyboard);
