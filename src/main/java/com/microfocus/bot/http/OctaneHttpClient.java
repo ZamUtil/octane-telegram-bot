@@ -2,6 +2,7 @@ package com.microfocus.bot.http;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microfocus.bot.Constants;
 import com.microfocus.bot.dto.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -63,9 +64,11 @@ public class OctaneHttpClient {
         try {
             String data = objectMapper.writeValueAsString(octaneAuth);
             processPost(BASE_URL + AUTH_URL, data);
-            String result = processGet(BASE_URL + USER_ID_URL + octaneAuth.getUser());
-            OctaneUser octaneUser = objectMapper.readValue(result, OctaneUser.class);
-            return octaneUser.getId();
+            //TODO temporary changes
+//            String result = processGet(BASE_URL + USER_ID_URL + octaneAuth.getUser());
+//            OctaneUser octaneUser = objectMapper.readValue(result, OctaneUser.class);
+//            return octaneUser.getId();
+            return Constants.USER_ID.toString();
         } catch (Exception ignored) {
         }
         return StringUtils.EMPTY;
