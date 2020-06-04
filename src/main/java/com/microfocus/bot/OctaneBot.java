@@ -83,9 +83,17 @@ public class OctaneBot extends AbilityBot implements Constants {
 
                 silent.forceReply(PLEASE_PROVIDE_LOGIN_REPLY, getChatId(update));
             } else if (data.startsWith(Constants.REPLY_COMMENT_BUTTON)) {
+                if (!isUserSingIn(update)) {
+                    silent.send("You are not logged", getChatId(update));
+                    return;
+                }
                 parseAndStoreLastReplyCommentCallbackData(update);
                 silent.forceReply(PLEASE_PROVIDE_REPLY_MESSAGE_REPLY, getChatId(update));
             } else if (data.startsWith(Constants.VIEW_ITEM_DETAILS_BUTTON)) {
+                if (!isUserSingIn(update)) {
+                    silent.send("You are not logged", getChatId(update));
+                    return;
+                }
                 Pair<Long, String> workItemIdAndType = getWorkItemIdAndType(update);
                 WorkItem workItemById = octaneClient.getWorkItemById(workItemIdAndType.getLeft());
 
@@ -117,7 +125,7 @@ public class OctaneBot extends AbilityBot implements Constants {
                             .setReplyMarkup(KeyboardFactory.getLoginInLineButtons()));
                     break;
                 case GET_MY_WORK_BIG_BUTTON:
-                    if (isUserSingIn(update)) {
+                    if (!isUserSingIn(update)) {
                         silent.send("You are not logged", getChatId(update));
                         return;
                     }
@@ -135,7 +143,7 @@ public class OctaneBot extends AbilityBot implements Constants {
                             });
                     break;
                 case DISABLE_PUSH_BIG_BUTTON:
-                    if (isUserSingIn(update)) {
+                    if (!isUserSingIn(update)) {
                         silent.send("You are not logged", getChatId(update));
                         return;
                     }
@@ -143,10 +151,10 @@ public class OctaneBot extends AbilityBot implements Constants {
                     silent.execute(new SendMessage()
                             .setText("Push notifications was disabled")
                             .setChatId(getChatId(update))
-                            .setReplyMarkup(KeyboardFactory.getMainBigButtons(true, false)));
+                            .setReplyMarkup(KeyboardFactory.getMainBigButtons(isPoolingEnabled(update))));
                     break;
                 case ENABLE_PUSH_BIG_BUTTON:
-                    if (isUserSingIn(update)) {
+                    if (!isUserSingIn(update)) {
                         silent.send("You are not logged", getChatId(update));
                         return;
                     }
@@ -154,7 +162,7 @@ public class OctaneBot extends AbilityBot implements Constants {
                     silent.execute(new SendMessage()
                             .setText("Push notifications was enabled")
                             .setChatId(getChatId(update))
-                            .setReplyMarkup(KeyboardFactory.getMainBigButtons(false, true)));
+                            .setReplyMarkup(KeyboardFactory.getMainBigButtons(isPoolingEnabled(update))));
                     break;
                 default:
                     throw new UnsupportedOperationException("not impl" + update.getMessage().getText());
@@ -167,10 +175,6 @@ public class OctaneBot extends AbilityBot implements Constants {
     public Reply replyToMessages() {
         Consumer<Update> action = update -> {
             if (!isReplyToBot(update)) {
-                return;
-            }
-            if (isUserSingIn(update)) {
-                silent.send("You are not logged", getChatId(update));
                 return;
             }
             switch (update.getMessage().getReplyToMessage().getText()) {
@@ -190,7 +194,7 @@ public class OctaneBot extends AbilityBot implements Constants {
                                 + userById.getLastName() + ", Welcome to Octane!\n" +
                                 "You will be notified when any comment arrives")
                                 .setChatId(getChatId(update))
-                                .setReplyMarkup(KeyboardFactory.getMainBigButtons(false, true)));
+                                .setReplyMarkup(KeyboardFactory.getMainBigButtons(isPoolingEnabled(update))));
 
                         startPolling(update);
                     } else {
@@ -208,10 +212,15 @@ public class OctaneBot extends AbilityBot implements Constants {
                     Pair<Long, String> itemData = readLastReplyCommentCallbackData(update);
                     octaneClient.postComment(createOctaneAuth(update), itemData, replyText);
 
+/*                    silent.execute(new SendMessage()
+                            .setText("Your respond is sent")
+                            .setChatId(getChatId(update))
+                            .setReplyMarkup(KeyboardFactory.getReplyCommentInLineButtons(itemData)));*/
+
                     silent.execute(new SendMessage()
                             .setText("Your respond is sent")
                             .setChatId(getChatId(update))
-                            .setReplyMarkup(KeyboardFactory.getReplyCommentInLineButtons(itemData)));
+                            .setReplyMarkup(KeyboardFactory.getMainBigButtons(isPoolingEnabled(update))));
 
                     break;
                 default:
@@ -221,8 +230,12 @@ public class OctaneBot extends AbilityBot implements Constants {
         return Reply.of(action, REPLY);
     }
 
+    private boolean isPoolingEnabled(Update update) {
+        return userPollingMap.get(getUserName(update)) != null;
+    }
+
     private void startPolling(Update update) {
-        if (userPollingMap.get(getUserName(update)) == null) {
+        if (!isPoolingEnabled(update)) {
             Thread pollThread = new PollUserDataThread(getUserDB(update), silent, getChatId(update), octaneClient);
             pollThread.start();
             userPollingMap.put(getUserName(update), pollThread);
